@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "BiteGo Restaurant",
+    "slug": "bitego-restaurant",
+    "version": "1.0.0",
+    "scheme": "bitegorestrict",
+    "ios": {
+      "bundleIdentifier": "com.emergent.bitego.restaurant"
+    },
+    "android": {
+      "package": "com.emergent.bitego.restaurant",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#C25934"
+      }
+    },
+    "plugins": ["expo-router", "expo-splash-screen", "expo-audio"],
+    "extra": {
+      "eas": { "projectId": "আপনার-রেস্টুরেন্ট-প্রজেক্ট-আইডি-এখানে-দিন" }
+    }
+  }
+}

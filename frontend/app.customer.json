@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "BiteGo Customer",
+    "slug": "bitego-customer",
+    "version": "1.0.0",
+    "scheme": "bitegocustomer",
+    "ios": {
+      "bundleIdentifier": "com.emergent.bitego.customer"
+    },
+    "android": {
+      "package": "com.emergent.bitego.customer",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#C25934"
+      }
+    },
+    "plugins": ["expo-router", "expo-splash-screen", "expo-audio"],
+    "extra": {
+      "eas": { "projectId": "আপনার-কাস্টমার-প্রজেক্ট-আইডি-এখানে-দিন" }
+    }
+  }
+}

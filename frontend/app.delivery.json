@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "BiteGo Delivery",
+    "slug": "bitego-delivery",
+    "version": "1.0.0",
+    "scheme": "bitegodelivery",
+    "ios": {
+      "bundleIdentifier": "com.emergent.bitegodelivery.abr9pa",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Find restaurants and deliver to your exact location"
+      }
+    },
+    "android": {
+      "package": "com.emergent.bitegodelivery.abr9pa",
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#C25934"
+      }
+    },
+    "plugins": ["expo-router", "expo-splash-screen", "expo-audio"],
+    "extra": {
+      "eas": { "projectId": "আপনার-ডেলিভারি-প্রজেক্ট-আইডি-এখানে-দিন" }
+    }
+  }
+}

@@ -1,0 +1,200 @@
+{
+  "app_name": "BiteGo",
+  "personality": "1 iOS-Native Clean",
+  "personality_one_liner": "A premium, appetizing, and fluid iOS-native food delivery experience that frames vibrant culinary photography against warm, tactile neutrals without relying on loud generic branding.",
+  "color": {
+    "surface": "#FDFBF7",
+    "onSurface": "#1C1917",
+    "surfaceSecondary": "#FFFFFF",
+    "onSurfaceSecondary": "#1C1917",
+    "surfaceTertiary": "#F2EFE9",
+    "onSurfaceTertiary": "#44403C",
+    "surfaceInverse": "#1C1917",
+    "onSurfaceInverse": "#FDFBF7",
+    "brand": "#C25934",
+    "brandPrimary": "#C25934",
+    "onBrandPrimary": "#FFFFFF",
+    "brandSecondary": "#E07B59",
+    "onBrandSecondary": "#FFFFFF",
+    "brandTertiary": "#F5E8E4",
+    "onBrandTertiary": "#A14221",
+    "success": "#3C7C49",
+    "onSuccess": "#FFFFFF",
+    "warning": "#C78D24",
+    "onWarning": "#FFFFFF",
+    "error": "#B0413E",
+    "onError": "#FFFFFF",
+    "info": "#4A6E82",
+    "onInfo": "#FFFFFF",
+    "border": "#E5E1D8",
+    "borderStrong": "#D4CFC4",
+    "divider": "#E5E1D8",
+    
+    "dark_surface": "#12100F",
+    "dark_onSurface": "#F5F5F4",
+    "dark_surfaceSecondary": "#1C1917",
+    "dark_onSurfaceSecondary": "#F5F5F4",
+    "dark_surfaceTertiary": "#292524",
+    "dark_onSurfaceTertiary": "#D6D3D1",
+    "dark_surfaceInverse": "#E8E4DF",
+    "dark_onSurfaceInverse": "#12100F",
+    "dark_brand": "#D46F49",
+    "dark_brandPrimary": "#D46F49",
+    "dark_onBrandPrimary": "#FFFFFF",
+    "dark_brandSecondary": "#E08766",
+    "dark_onBrandSecondary": "#FFFFFF",
+    "dark_brandTertiary": "#3B2117",
+    "dark_onBrandTertiary": "#F5D4C9",
+    "dark_success": "#4D9A5D",
+    "dark_onSuccess": "#FFFFFF",
+    "dark_warning": "#DFAB46",
+    "dark_onWarning": "#1C1917",
+    "dark_error": "#CF5C59",
+    "dark_onError": "#FFFFFF",
+    "dark_info": "#6491A8",
+    "dark_onInfo": "#FFFFFF",
+    "dark_border": "#292524",
+    "dark_borderStrong": "#44403C",
+    "dark_divider": "#292524"
+  },
+  "typography": {
+    "displayFontFamily": "Plus Jakarta Sans",
+    "textFontFamily": "Plus Jakarta Sans",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Generous iOS-native rhythms. Content must never touch edges without margins. Maintain breathing room between distinct sections.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": 1,
+  "navigation": "bottom_tabs",
+  "icon_set": "Ionicons",
+  "glassmorphism": {
+    "enabled": true,
+    "do's": [
+      "Use blur on sticky search/location headers that sit over scrolling feed.",
+      "Use frosted glass on the bottom tab bar.",
+      "Use glass on Floating Action Buttons (Cart icon).",
+      "Apply glass + gradient scrim on text overlapping hero images (restaurant cards)."
+    ],
+    "dont's": [
+      "Never blur standard card backgrounds or list items.",
+      "Avoid blur if the content underneath is pure solid color without variation."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Home",
+      "purpose": "A rich discovery feed that prioritizes high-quality food photography and rapid category filtering.",
+      "states": {
+        "loading": "Skeleton loaders for horizontal carousels and vertical feed cards.",
+        "empty": "N/A for home unless zero restaurants in area, then an illustration with 'We are not in your area yet'.",
+        "error": "Centered 'Connection lost' message with a primary Retry button."
+      },
+      "layout": "Sticky top glass header with Delivery Location selector and Search bar. Horizontal scrolling chips for categories (Biryani, Burger, etc.). Horizontal carousel for 'Offers'. Vertical stacked cards for 'Nearby' and 'Popular'. Use edge-to-edge images on restaurant cards with bottom gradient scrims for title readability."
+    },
+    {
+      "name": "Restaurant Profile",
+      "purpose": "Showcase the restaurant's vibe and full menu with easy add-to-cart interactions.",
+      "states": {
+        "loading": "Full screen skeleton mirroring header and list.",
+        "empty": "Menu not available illustration.",
+        "error": "Could not load menu, Retry."
+      },
+      "layout": "Large hero image header that collapses on scroll. Floating back button. Floating Cart CTA fixed at bottom right if items are in cart. Menu items listed vertically with square thumbnail on the right, title/desc/price on the left. Inline quantity stepper (+/-) when item is added."
+    },
+    {
+      "name": "Cart & Checkout",
+      "purpose": "Frictionless review of items and quick address/payment confirmation (COD only).",
+      "states": {
+        "loading": "Processing overlay with spinner.",
+        "empty": "Empty plate illustration with 'Your cart is feeling light'.",
+        "error": "Failed to update cart."
+      },
+      "layout": "Stack layout. Top section: Restaurant summary. Middle: List of items with quantity steppers. Bottom section: Bill details (subtotal, taxes, delivery) and delivery address selector. Fixed sticky primary CTA at bottom ('Place Order')."
+    },
+    {
+      "name": "Order Tracking",
+      "purpose": "Provide clear, real-time status updates without cognitive overload.",
+      "states": {
+        "loading": "Spinner centered.",
+        "empty": "N/A",
+        "error": "Unable to fetch live status, shows last known state with warning banner."
+      },
+      "layout": "Top section: Large dynamic ETA and primary status. Middle: Map view (or animated graphic if map unavailable). Bottom sheet (Gorhom): Vertical timeline stepper showing the 8 statuses, highlighting the active one."
+    }
+  ],
+  "images": {
+    "hero_offer_1": {
+      "url": "https://images.unsplash.com/photo-1633945274405-b6c8069047b0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDB8MHwxfHNlYXJjaHwzfHxnb3VybWV0JTIwYnVyZ2VyJTIwcGl6emElMjBiaXJ5YW5pfGVufDB8fHx8MTc4NTc0NjQ5MXww&ixlib=rb-4.1.0&q=85",
+      "alt": "Delicious biryani platter"
+    },
+    "hero_offer_2": {
+      "url": "https://images.unsplash.com/photo-1613564834361-9436948817d1?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDB8MHwxfHNlYXJjaHwxfHxnb3VybWV0JTIwYnVyZ2VyJTIwcGl6emElMjBiaXJ5YW5pfGVufDB8fHx8MTc4NTc0NjQ5MXww&ixlib=rb-4.1.0&q=85",
+      "alt": "Wood fired pizza"
+    },
+    "category_burger": {
+      "url": "https://images.unsplash.com/photo-1513185158878-8d8c2a2a3da3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDB8MHwxfHNlYXJjaHw0fHxnb3VybWV0JTIwYnVyZ2VyJTIwcGl6emElMjBiaXJ5YW5pfGVufDB8fHx8MTc4NTc0NjQ5MXww&ixlib=rb-4.1.0&q=85",
+      "alt": "Gourmet burger"
+    },
+    "restaurant_exterior": {
+      "url": "https://images.pexels.com/photos/18344760/pexels-photo-18344760.jpeg",
+      "alt": "Modern outdoor cafe entrance"
+    },
+    "restaurant_interior": {
+      "url": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4",
+      "alt": "Modern pub and restaurant interior"
+    },
+    "empty_plate_state": {
+      "url": "https://images.unsplash.com/photo-1567934124115-2eca8953796b",
+      "alt": "Empty round plate on table"
+    }
+  },
+  "haptics": {
+    "primary_button_press": "impactMedium",
+    "add_to_cart": "impactLight",
+    "quantity_stepper": "selection",
+    "tab_change": "selection",
+    "order_placed_success": "notificationSuccess",
+    "pull_to_refresh": "impactLight"
+  },
+  "instructions_to_main_agent": [
+    "Originality: Adhere to the Warm Sand & Rust/Cinnamon palette. DO NOT use generic red, orange, green, or blue found in standard delivery apps.",
+    "Typography: Apply Plus Jakarta Sans universally. Use weight 500 for headers and active states. Do not exceed font weight 500.",
+    "Images on Cards: Restaurant cards MUST have a vertical linear gradient scrim (transparent to surfaceInverse) at the bottom 40% before rendering text over the image. Ensure high contrast.",
+    "Cart Behavior: Strict one-restaurant rule. If adding an item from a new restaurant, present a clear alert/modal to clear the cart first.",
+    "Layout Rules: Avoid edge-to-edge text. Maintain `lg` or `xl` padding around content containers. Use a fixed sticky primary CTA at the bottom for Cart and Checkout.",
+    "Order Tracking: Implement a clear 8-step vertical timeline. Make sure it is scrollable and readable, housed in a bottom sheet or a card below the map.",
+    "Empty States: Use the provided empty_plate_state image with a contextual message instead of plain text."
+  ]
+}

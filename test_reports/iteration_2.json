@@ -1,0 +1,35 @@
+{
+  "summary": "Backend: 21/21 pytest cases pass, including a NEW dedicated regression test (test_otp_request_repeat_after_verify_no_500_regression) that exercises 3 request→verify cycles for the SAME phone+role across all 3 mobile roles (customer/restaurant/delivery) — previously produced a 500 DuplicateKeyError, now returns 200 every time. Existing cooldown-429 test still passes, so the fix is scoped and non-regressive. Frontend: Admin Web fully functional via Partner→Admin→admin-login on wide viewport — Dashboard shows real counts (7 orders today, ₹1048 revenue, ₹28 platform revenue, ₹28 delivery margin, ₹880 seller payable, ₹112 partner payable, 13 customers, 2 restaurants); Settings screen renders TWO SEPARATE brand cards ('Customer Delivery Charge' with delivery_base_first_km + delivery_additional_per_km, and 'Delivery Partner Earning' with 3km→₹28, 4→₹35, 5→₹42 slabs); Save Settings shows 'Settings saved. Applies to future orders.' toast (PUT /api/admin/settings 200 OK); Service Areas, Settlements (Restaurant-wise ₹880 Spice Route Kitchen 4 orders + Delivery Partner-wise), Restaurants list (Spice Route Kitchen visible), Orders list all load. Partner phone-login screens render correctly for both Restaurant Partner and Delivery Partner branding. Full end-to-end 4-app state machine (customer place COD order → restaurant accept→preparing→ready → delivery accept-with-₹28-earning→pickup→start→deliver → DELIVERED + admin settlement includes it) is proven server-side. Deprecated RN warnings persist: shadow* → boxShadow, props.pointerEvents → style.pointerEvents, useNativeDriver on web.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "phone-input", "issue": "Duplicated testID='phone-input' — the same testID appears on the customer /login screen AND on the partner /partner/{role} phone-login screen; both remain mounted in the Expo Router stack, so a Playwright locator resolves to 2 elements (test framework warning). Automation must use .last or scope to the visible screen container.", "testID": "phone-input", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "admin/orders", "issues": ["Admin Orders list row shows only aggregate 'Total ₹X' + distance; the customer_delivery_charge and delivery_partner_earning are only exposed when the row is expanded via admin-order-{id} press. The review-request explicitly asks that both amounts be visible in the orders list — verify with main agent whether expand-to-view meets the requirement or if they need to be surfaced in the collapsed row."]}
+    ],
+    "react_native_issues": [
+      {"component": "shadow* style props", "issue": "Console warning: 'shadow*' style props are deprecated — use 'boxShadow'. Reference: /app/frontend/app/(auth)/login.tsx and other screens using elevated cards/buttons."},
+      {"component": "props.pointerEvents", "issue": "Console warning: props.pointerEvents is deprecated — use style.pointerEvents. Reference: TouchableOpacity/Pressable usage across screens."},
+      {"component": "Animated useNativeDriver on web", "issue": "Warning: RCTAnimation missing — Animated falls back to JS animation on web. Wrap useNativeDriver with Platform.OS !== 'web' or use LayoutAnimation."}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "OPTIONAL: Give the partner-phone-login screen a unique testID (e.g. partner-phone-input) so automation and future tests can differentiate it from the customer login phone-input.",
+    "CLARIFY WITH PM: Admin Orders list — surface customer_delivery_charge AND delivery_partner_earning in the collapsed row (currently only Total + distance shown; both values are visible after expanding).",
+    "TECH DEBT: Migrate deprecated RN-web style props (shadow* → boxShadow, props.pointerEvents → style.pointerEvents) and guard Animated useNativeDriver on web to eliminate console noise."
+  ],
+  "critical_code_review_comments": [
+    "server.py otp_request: current fix uses `replace_one` + `update_many({consumed:false},{consumed:true})` before insert — correct. However, the OtpChallenge collection has a unique index on (phone, role, consumed:false). If two /auth/otp/request calls race, the update_many→insert_one is not atomic; recommend a single upsert on (phone, role) or a transaction. Current 60s cooldown makes this unlikely but not impossible.",
+    "routes_ops delivery_pickup/start/deliver/location still dereferences partner without None-guard (carried over from iter 1)."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "100% (21/21)", "frontend": "Admin Web: dashboard/settings-save/settlements/service-areas/restaurants/orders navigation all verified on 1024x768 viewport. Restaurant & Delivery partner login screens render correctly with correct branding; end-to-end order state machine already verified server-side (21/21 pytest)."},
+  "seed_data_creation": "POST /api/admin/seed executed by test_admin_login_and_seed (idempotent). No new seed added in this iteration.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Regression suite: `python -m pytest backend/tests/backend_test.py -v --tb=short` (21 tests, ~9s). Uses EXPO_PUBLIC_BACKEND_URL from env or /app/frontend/.env. New OTP regression test lives at line ~71 (test_otp_request_repeat_after_verify_no_500_regression). Admin Web must be tested on a wide viewport (>=1024px) — the top nav has 7 items and won't fit on 375px. Restaurant/Delivery mobile flows: login via Partner link → role card → phone(9000000001 or 9000000009) → 'Send OTP' → OTP screen (single hidden [data-testid='otp-input'] behind 6 visual boxes; use page.evaluate to focus + keyboard.type). NOTE the duplicated testID='phone-input' between customer /login and /partner/{role} — use .last or wait for URL '/partner/'.",
+  "rca_of_issue": "REGRESSION FIX VERIFICATION — /api/auth/otp/request DuplicateKeyError: root cause was that a previous OTP challenge with same (phone, role, consumed:false) still existed when insert_one ran on a unique compound index; server.py now marks all previous challenges consumed via update_many BEFORE insert_one, and the rate-limit doc uses replace_one with upsert=True. Verified across all 3 mobile roles (customer/restaurant/delivery) with 3 back-to-back request→verify cycles per role: all return 200. Cooldown-429 for repeat WITHOUT verify is preserved."
+}

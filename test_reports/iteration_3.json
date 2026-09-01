@@ -1,0 +1,34 @@
+{
+  "summary": "Backend-only regression + new Google Maps integration verification. 27/27 pytest cases pass (21 baseline regression + 6 NEW map-integration cases). Verified: (1) POST /api/maps/route requires auth (401 without bearer) and returns {distance_km, duration_seconds, polyline, source} with source='haversine' when Google Routes API is disabled — polyline & duration_seconds are null in fallback path; distance matches an independently-computed Haversine within 0.01 km; same-origin/destination returns 0 km. (2) POST /api/orders/quote still produces correct dual-rate totals at ~2.22 km (falls in 3km slab): food_subtotal + platform_charge=7 + customer_delivery_charge=35 + delivery_partner_earning=28, and the quote response now includes eta_seconds (null on fallback). (3) POST /api/orders creates the order and persists distance_source='haversine', route_polyline=null, eta_seconds=null, an immutable settings_snapshot, restaurant_lat/lng and address.lat/lng for map rendering; client_order_id idempotency preserved (duplicate=true on retry). (4) Dual-rate independence confirmed at 3km bucket — customer 35 ≠ partner 28, and bitego_delivery_margin=7. (5) Full order lifecycle regression intact: PLACED→ACCEPTED→PREPARING→READY→ASSIGNED→PICKED_UP→OUT_FOR_DELIVERY→DELIVERED across restaurant + delivery apps on the same backend; partner your_earning=28 on accept; invalid transitions return 409; second delivery-accept returns 409. (6) Delivery /api/delivery/earnings history entries carry the correct partner earning (28, not 35), distance_source='haversine', and restaurant + address coordinates for map rendering. GOOGLE_MAPS_SERVER_KEY is empty in backend/.env (expected) so maps.get_route short-circuits to Haversine — verified by inspecting the response.source field on every code path.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "OPTIONAL: When the Google Routes API is enabled on the GCP project, re-run the map tests. The current tests assert source=='haversine' in the fallback path; once Google is enabled, tighten test_maps_route_returns_haversine_fallback to accept source in ('google','haversine') OR split into two suites gated by GOOGLE_MAPS_SERVER_KEY presence.",
+    "OPTIONAL: Add a client-side (frontend) test once Google Maps JS SDK is activated — out of scope for this iteration per PM note."
+  ],
+  "critical_code_review_comments": [
+    "maps.py: httpx.AsyncClient is created lazily and closed only via app shutdown (server.py line 95). Good. No changes required.",
+    "server.py /api/maps/route uses current_user (any authenticated role) — correct so that customer/restaurant/delivery apps can all draw the route.",
+    "server.py create_order: route_polyline/distance_source/eta_seconds are now snapshotted at order creation and NOT re-fetched later (immutable trace). Correct — matches financial snapshot pattern.",
+    "finance.py haversine_km rounds to 3 decimals; if Google returns higher precision (round(meters/1000, 3) in maps.py) the rounding is consistent — no drift.",
+    "Carry-over from iter 1/2 (not introduced this iteration): routes_ops.delivery_pickup/start/deliver/location dereference partner without None-guard on the second lookup (only checked once via _partner). Low priority — the /delivery/register gate already exists."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py"
+  ],
+  "success_rate": {"backend": "100% (27/27)", "frontend": "not tested per PM instruction (Google Maps JS SDK not yet activated)"},
+  "seed_data_creation": "Idempotent POST /api/admin/seed via existing test_admin_login_and_seed. No new seed added.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Regression suite: `python -m pytest /app/backend/tests/backend_test.py -v --tb=short` — 27 tests, ~65s (map-route tests hit the live public URL which adds latency). Uses EXPO_PUBLIC_BACKEND_URL from env or /app/frontend/.env. NEW tests (line ~373 onwards): test_maps_route_requires_auth, test_maps_route_returns_haversine_fallback, test_maps_route_zero_distance, test_quote_response_includes_eta_seconds_field, test_created_order_carries_map_metadata_and_coords, test_delivery_requests_include_partner_earning_and_coords. GOOGLE_MAPS_SERVER_KEY is intentionally empty — when it's enabled, several of these tests will need loosened assertions (source can be 'google' with non-null polyline/duration). Frontend maps testing is deferred until the Google Maps JS SDK is activated on the GCP project.",
+  "rca_of_issue": "N/A — no bugs found. This iteration validates the new Google Maps distance-wiring feature. The Haversine fallback path in /app/backend/maps.py is triggered because config.GOOGLE_MAPS_SERVER_KEY is empty; the function returns a well-formed dict with source='haversine' and null google-only fields, and the orders quote/create/lifecycle flow continues to produce correct authoritative totals with the two independent rate systems (customer delivery charge vs partner earning) unchanged."
+}

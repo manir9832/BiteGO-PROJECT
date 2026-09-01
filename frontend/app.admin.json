@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "BiteGo Admin",
+    "slug": "bitego-admin",
+    "version": "1.0.0",
+    "scheme": "bitegoadmin",
+    "ios": {
+      "bundleIdentifier": "com.emergent.bitego.admin"
+    },
+    "android": {
+      "package": "com.emergent.bitego.admin",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#C25934"
+      }
+    },
+    "plugins": ["expo-router", "expo-splash-screen", "expo-audio"],
+    "extra": {
+      "eas": { "projectId": "আপনার-অ্যাডমিন-প্রজেক্ট-আইডি-এখানে-দিন" }
+    }
+  }
+}

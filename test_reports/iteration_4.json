@@ -1,0 +1,37 @@
+{
+  "summary": "Iteration 4 focus: Object Storage image uploads, admin media endpoint, restaurant self-upload flow, logout revocation, and connectivity. Backend: 40/40 pytest cases pass (27 iter-3 regression in backend_test.py + 13 NEW in test_iteration4.py). Verified in test_iteration4.py: (1) POST /api/upload returns 401 without auth, 403 for customer, 400 empty, 415 wrong content-type, 413 for >8MB. (2) Admin & restaurant uploads return {path,url}; path is namespaced 'bitego/uploads/{user_id}/{uuid}.{ext}'. (3) GET /api/files/{path} is public (no auth), serves the exact bytes with correct Content-Type, 404 for unknown path. (4) PUT /api/admin/restaurants/{rid}/media (admin only) sets cover/logo/image; the new cover propagates to GET /api/restaurants and GET /api/restaurants/{id} (customer discovery). (5) Restaurant owner (9000000001) can upload an image and POST /api/restaurant/foods with that image URL; the food appears in the customer /api/restaurants/{id}.menu with the correct image reference — end-to-end app-to-app visibility on the SAME backend/DB confirmed. (6) POST /api/auth/logout revokes the refresh token — subsequent /api/auth/refresh returns 401. (7) POST /api/maps/route regression: still returns source='haversine' since Google Routes API is disabled on the GCP project. Frontend: Expo web preview loads, login screen renders correctly (testID phone-input present) and the logout flow in /app/frontend/src/context/auth.tsx correctly (a) calls /auth/logout with the stored refresh token, (b) clears tokens, (c) routes to /(auth)/login. All four apps (Customer tab profile, Restaurant profile, Delivery profile, Admin header) wire their logout button to the same useAuth().logout via testIDs 'logout-button', 'restaurant-logout', 'delivery-logout', 'admin-logout'. Google Maps JS SDK rendering was NOT tested per PM note (ApiNotActivatedMapError expected).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/backend/tests/test_iteration4.py",
+    "/app/test_reports/pytest/pytest_results.xml",
+    "/app/test_reports/pytest/iter4_results.xml"
+  ],
+  "action_items": [
+    "OPTIONAL (design note, not a bug): PUT /api/restaurant/foods/{food_id} uses full FoodBody replacement (name/price/category required in every update). If the mobile UI ever sends a partial 'image only' patch it will 422 — either always send the full food payload from the client, or change the endpoint to accept optional fields. Confirmed workable today (test_restaurant_adds_food_with_uploaded_image_visible_to_customer POSTs a fresh food with the uploaded image URL and it lands in the customer menu).",
+    "OPTIONAL: Once the Google Maps JS SDK is activated on the GCP project, re-run frontend map-render tests and loosen /api/maps/route assertions in backend_test.py (source may become 'google')."
+  ],
+  "critical_code_review_comments": [
+    "server.py /api/upload: correctly (a) requires auth via require_roles('restaurant','admin'), (b) rejects empty (400), oversize (413), unsupported CT (415), (c) namespaces path per user_id to avoid collision, (d) records the upload in db.uploads for audit. Good.",
+    "server.py /api/files/{path:path}: intentionally public (no auth) so customers can view images without token — correct.",
+    "storage.py: _reset_and_init retries once on 503 (stale storage_key) — good resilience. Consider adding jittered backoff on 5xx to survive brief provider blips.",
+    "routes_admin.py PUT /restaurants/{rid}/media: correctly rejects empty payload (400), only sets provided keys, and audits. The response echoes the updated restaurant so the admin UI can render immediately.",
+    "auth.tsx logout(): correctly calls /auth/logout (fire-and-forget wrapped in try/catch so a network blip still logs out locally), clears tokens, then router.replace to /(auth)/login. Same handler is reused by all 4 role apps — no duplication.",
+    "Carry-over from iter 1: routes_ops.delivery_pickup/start/deliver relies on _partner having been called; low-priority defensive-nullcheck note only."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration4.py"
+  ],
+  "success_rate": {"backend": "100% (40/40)", "frontend": "smoke-only: login screen loads, logout wiring reviewed in source (code path verified)"},
+  "seed_data_creation": "Reused existing idempotent POST /api/admin/seed. New test foods are prefixed 'TEST_UploadedFood_' and soft-deleted after the test.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Full regression: `python -m pytest /app/backend/tests/ -v --tb=short` — 40 tests, ~72s. Iter-4 additions live in /app/backend/tests/test_iteration4.py. Uses EXPO_PUBLIC_BACKEND_URL from env or /app/frontend/.env. Object storage is initialized on app startup (server.py lifespan). Upload paths look like 'bitego/uploads/{user_id}/{uuid}.{jpg|png|webp|heic|heif}'. Files are served at BASE + /api/files/{path}. Admin/restaurant uploads verified; customer role is intentionally forbidden. Frontend UI testing of the exact login->logout click flow was blocked by the OTP rate-limit only (two OTP requests to same phone within cooldown => 429), but the underlying logout endpoint and the auth.tsx handler have been verified separately.",
+  "rca_of_issue": "N/A — no bugs found this iteration. Object Storage upload/serve, admin media, restaurant self-upload -> customer visibility, and logout revocation all work as specified. Haversine fallback on /api/maps/route remains correct because GOOGLE_MAPS_SERVER_KEY is empty (expected per PM note)."
+}
