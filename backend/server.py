@@ -2351,6 +2351,34 @@ async def upload_file(file: UploadFile = File(...),
 
 # ============================ MIDDLEWARE & ROUTER INCLUSION ============================
 
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_credentials=True,
+#     allow_origins=["*"],
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# app.include_router(api)
+
+# import routes_admin
+# import routes_ops
+
+# app.include_router(routes_ops.router)
+# app.include_router(routes_admin.router)
+
+
+
+
+
+
+
+
+
+
+
+# ============================ MIDDLEWARE & ROUTER INCLUSION ============================
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -2359,10 +2387,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ১. প্রথমে বেসিক api রাউটারটি ইনক্লুড করো
 app.include_router(api)
 
+# ২. অপস এবং এডমিন রাউটারগুলোকে নিরাপদ রাখতে সরাসরি app-এ যুক্ত করার বদলে 
+# অথবা তাদের নিজস্ব প্রিফিক্স নিশ্চিত করে এখানে যুক্ত করো:
 import routes_admin
 import routes_ops
 
-app.include_router(routes_ops.router)
-app.include_router(routes_admin.router)
+# যদি routes_ops এবং routes_admin এর ভেতরে আলাদা প্রিফিক্স না থাকে, 
+# তবে এখানে prefix="/api" দিয়ে ট্যাগ করে দিতে পারো:
+app.include_router(routes_ops.router, prefix="/api")
+app.include_router(routes_admin.router, prefix="/api")
