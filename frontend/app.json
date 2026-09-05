@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "bitego",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.emergent.bitegodelivery.abr9pa",
@@ -20,7 +19,6 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#C25934"
       },
-      "edgeToEdgeEnabled": true,
       "package": "com.emergent.bitegodelivery.abr9pa",
       "permissions": [
         "ACCESS_FINE_LOCATION",

@@ -9,7 +9,7 @@ import { C, R, S, T } from "@/src/theme";
 const OPTIONS = [
   { role: "restaurant", icon: "restaurant", title: "Restaurant Partner", sub: "Manage orders, menu & earnings", route: "/(auth)/login?role=restaurant" },
   { role: "delivery", icon: "bicycle", title: "Delivery Partner", sub: "Go online & accept deliveries", route: "/(auth)/login?role=delivery" },
-  // { role: "admin", icon: "shield-checkmark", title: "Admin", sub: "Platform control & settings (web)", route: "/(auth)/admin-login" },
+  { role: "admin", icon: "shield-checkmark", title: "Admin", sub: "Platform control & settings (web)", route: "/(auth)/admin-login" },
 ];
 
 export default function Partner() {

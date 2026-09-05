@@ -42,7 +42,7 @@ export default function AdminLogin() {
         <Txt color={C.muted} style={{ marginTop: S.xs, marginBottom: S.xl }}>Secure access to platform controls.</Txt>
 
         <Txt weight="medium" size={T.sm} color={C.onSurfaceTertiary} style={styles.lbl}>EMAIL</Txt>
-        <TextInput testID="admin-email" value={email} onChangeText={setEmail} placeholder="admin@bitego.app"
+        <TextInput testID="admin-email" value={email} onChangeText={setEmail} placeholder="email here"
           placeholderTextColor={C.muted} autoCapitalize="none" keyboardType="email-address" style={styles.input} />
 
         <Txt weight="medium" size={T.sm} color={C.onSurfaceTertiary} style={styles.lbl}>PASSWORD</Txt>
