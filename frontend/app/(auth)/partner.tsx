@@ -9,7 +9,7 @@ import { C, R, S, T } from "@/src/theme";
 const OPTIONS = [
   { role: "restaurant", icon: "restaurant", title: "Restaurant Partner", sub: "Manage orders, menu & earnings", route: "/(auth)/login?role=restaurant" },
   { role: "delivery", icon: "bicycle", title: "Delivery Partner", sub: "Go online & accept deliveries", route: "/(auth)/login?role=delivery" },
-  { role: "admin", icon: "shield-checkmark", title: "Admin", sub: "Platform control & settings (web)", route: "/(auth)/admin-login" },
+  // { role: "admin", icon: "shield-checkmark", title: "Admin", sub: "Platform control & settings (web)", route: "/(auth)/admin-login" },
 ];
 
 export default function Partner() {
@@ -17,7 +17,7 @@ export default function Partner() {
   const router = useRouter();
   return (
     <View style={{ flex: 1, backgroundColor: C.surface }}>
-      <StackHeader title="Partner & Admin" />
+      <StackHeader title="Partner " />
       <View style={{ padding: S.lg, paddingBottom: insets.bottom + S.xl }}>
         <Txt color={C.muted} style={{ marginBottom: S.md }}>Choose how you want to sign in to BiteGo.</Txt>
         {OPTIONS.map((o) => (

@@ -299,6 +299,7 @@
 
 
 
+
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
@@ -326,7 +327,7 @@ SplashScreen.preventAutoHideAsync();
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: true,
+    shouldPlaySound: true, // সাউন্ড বাজানোর জন্য এটি true রাখা হয়েছে
     shouldSetBadge: false,
   }),
 });
@@ -345,14 +346,14 @@ export default function RootLayout() {
     if (ready) {
       SplashScreen.hideAsync();
       
-      // অ্যান্ড্রয়েডের জন্য নোটিফিকেশন চ্যানেল সেটআপ
+      // অ্যান্ড্রয়েডের জন্য নোটিফিকেশন চ্যানেল সেটআপ (সাউন্ড সহ)
       if (Platform.OS === 'android') {
         Notifications.setNotificationChannelAsync('default', {
           name: 'default',
-          importance: Notifications.AndroidImportance.MAX,
+          importance: Notifications.AndroidImportance.MAX, // ম্যাক্সিমাম ইম্পর্টেন্স যাতে লক স্ক্রিন ও সাউন্ড ঠিকমতো বাজে
           vibrationPattern: [0, 250, 250, 250],
           lightColor: '#FF231F7C',
-          sound: 'default',
+          sound: 'default', // ডিফল্ট সাউন্ড নিশ্চিত করা
         });
       }
 
@@ -360,35 +361,37 @@ export default function RootLayout() {
     }
   }, [ready]);
 
-  // পুশ টোকেন নেওয়ার নিরাপদ ফাংশন
+  // পুশ টোকেন নেওয়ার ফাংশন
   async function registerForPushTokenAsync() {
+    if (!Device.isDevice) {
+      console.log("Must use physical device for Push Notifications");
+      return;
+    }
+
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      console.log("Failed to get push token for push notification!");
+      return;
+    }
+
     try {
-      if (!Device.isDevice) {
-        return;
-      }
-
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      if (finalStatus !== 'granted') {
-        return;
-      }
-
       const tokenData = await Notifications.getExpoPushTokenAsync();
       const pushToken = tokenData.data;
+      console.log("Expo Push Token:", pushToken);
 
       await api.post('/users/push-token', { push_token: pushToken });
     } catch (error) {
-      console.log("Push notification token error ignored:", error);
+      console.log("Error getting or saving push token:", error);
     }
   }
 
-  // ফন্ট বা আইকন লোড না হওয়া পর্যন্ত স্প্ল্যাশ স্ক্রিন হোল্ড করে রাখবে
   if (!ready) return null;
 
   return (

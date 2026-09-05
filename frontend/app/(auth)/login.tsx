@@ -85,12 +85,12 @@ export default function Login() {
         {role === "customer" ? (
           <Pressable onPress={() => router.push("/(auth)/partner")} style={styles.partnerLink} testID="partner-login-link">
             <Ionicons name="briefcase-outline" size={16} color={C.brandPrimary} />
-            <Txt weight="semibold" color={C.brandPrimary} size={T.sm}>Partner & Admin login</Txt>
+            <Txt weight="semibold" color={C.brandPrimary} size={T.sm}>Partner  register/login</Txt>
           </Pressable>
         ) : (
           <Pressable onPress={() => router.replace("/(auth)/login")} style={styles.partnerLink} testID="customer-login-link">
             <Ionicons name="arrow-back" size={16} color={C.brandPrimary} />
-            <Txt weight="semibold" color={C.brandPrimary} size={T.sm}>Back to customer login</Txt>
+            <Txt weight="semibold" color={C.brandPrimary} size={T.sm}>Back to customer register/login</Txt>
           </Pressable>
         )}
       </KeyboardAwareScrollView>
