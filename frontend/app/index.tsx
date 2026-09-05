@@ -59,8 +59,8 @@ export default function Index() {
       router.replace("/(delivery)/"); // 👈 ট্রেইলিং স্ল্যাশ (/) দেওয়া জরুরি
     } else if (user.role === "restaurant") {
       router.replace("/(restaurant)/");
-    // } else if (user.role === "admin") {
-    //   router.replace("/(admin)/");
+    } else if (user.role === "admin") {
+      router.replace("/(admin)/");
     } else if (!user.name) {
       router.replace("/(auth)/complete-profile");
     } else {

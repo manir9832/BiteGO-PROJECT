@@ -621,13 +621,13 @@ async def admin_login(body: AdminLoginModel):
 
 @router.get("/force-reset-admin")
 async def force_reset_admin():
-    hashed = pwd_context.hash("admin@2026")
+    hashed = pwd_context.hash("2026@Admin")
     await db.users.update_one(
         {"email": "admin@bitego.com"},
         {"$set": {"email": "admin@bitego.com", "password_hash": hashed, "role": "admin", "name": "Super Admin"}},
         upsert=True
     )
-    return {"success": True, "message": "Admin reset to password: admin@2026"}
+    return {"success": True, "message": "Admin reset to password: 2026@Admin"}
 
 
 
