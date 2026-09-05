@@ -581,7 +581,19 @@ async def admin_login(body: AdminLoginModel):
         )
 
     # ৩. পাসওয়ার্ড হ্যাশ ভেরিফাই করা (ডাটাবেজে অবশ্যই hashed_password থাকতে হবে)
-    hashed_password = user.get("hashed_password", "")
+    # hashed_password = user.get("hashed_password", "")
+    # if not hashed_password or not pwd_context.verify(password, hashed_password):
+    #     raise HTTPException(
+    #         status_code=status.HTTP_401_UNAUTHORIZED,
+    #         detail="Incorrect email or password"
+    #     ) 
+
+
+
+
+
+    # ৩. পাসওয়ার্ড হ্যাশ ভেরিফাই করা (ডাটাবেজে password_hash ফিল্ড চেক করা হচ্ছে)
+    hashed_password = user.get("password_hash") or user.get("hashed_password", "")
     if not hashed_password or not pwd_context.verify(password, hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
