@@ -15,6 +15,7 @@
       }
     },
     "android": {
+      "jsEngine": "jsc",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#C25934"
@@ -22,8 +23,15 @@
       "package": "com.emergent.bitegodelivery.abr9pa",
       "permissions": [
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
-      ]
+        "ACCESS_COARSE_LOCATION",
+        "INTERNET"
+      ],
+      "usesCleartextTraffic": true,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBfRgu9SAyaRSO5hjyqQKZea9rM5pTURC4"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -49,8 +57,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "f1504779-2a03-4b6b-9d8d-46e4cb1e5ef5"
+        "projectId": "73886452-cde7-4d48-892e-635cfa9af96f"
       }
-    }
+    },
+    "owner": "manir_dev"
   }
 }

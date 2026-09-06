@@ -18,6 +18,7 @@ module.exports = ({ config }) => ({
   },
   android: {
     ...config.android,
+    jsEngine: "jsc",
     config: {
       ...(config.android && config.android.config),
       googleMaps: { apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY },

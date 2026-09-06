@@ -149,6 +149,15 @@
 
 
 
+
+
+
+
+
+
+
+
+
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
@@ -157,24 +166,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { useFonts } from "expo-font";
+import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Device from "expo-device";
-
-// নোটিফিকেশন মডিউলটি Expo Go-এর ক্র্যাশ এড়ানোর জন্য সেফলি হ্যান্ডেল করা হলো
-let Notifications: any = null;
-try {
-  Notifications = require("expo-notifications");
-  
-  // নোটিফিকেশন হ্যান্ডলার সেটআপ
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-    }),
-  });
-} catch (e) {
-  console.log("Notifications not supported in this environment");
-}
 
 import { useIconFonts } from "@/src/hooks/use-icon-fonts";
 import { AuthProvider } from "@/src/context/auth";
@@ -187,6 +180,26 @@ import { api } from "@/src/api";
 
 LogBox.ignoreAllLogs(true);
 SplashScreen.preventAutoHideAsync();
+
+// Safe check to see if we are running inside Expo Go
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+// Conditional import for Notifications to prevent Expo Go crashes
+let Notifications: any = null;
+if (!isExpoGo) {
+  try {
+    Notifications = require("expo-notifications");
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
+  } catch (e) {
+    console.log("Notifications module not available", e);
+  }
+}
 
 export default function RootLayout() {
   const [iconsLoaded, iconErr] = useIconFonts();
@@ -202,9 +215,8 @@ export default function RootLayout() {
     if (ready) {
       SplashScreen.hideAsync();
       
-      // অ্যান্ড্রয়েডের জন্য নোটিফিকেশন চ্যানেল সেটআপ (যদি নোটিফিকেশন এভেইলেবল থাকে)
-      if (Platform.OS === 'android' && Notifications) {
-        try {
+      if (!isExpoGo && Notifications) {
+        if (Platform.OS === 'android') {
           Notifications.setNotificationChannelAsync('default', {
             name: 'default',
             importance: Notifications.AndroidImportance.MAX,
@@ -212,19 +224,17 @@ export default function RootLayout() {
             lightColor: '#FF231F7C',
             sound: 'default',
           });
-        } catch (error) {
-          console.log("Channel setup error:", error);
         }
+        registerForPushTokenAsync();
       }
-
-      registerForPushTokenAsync();
     }
   }, [ready]);
 
-  // পুশ টোকেন নেওয়ার ফাংশন
   async function registerForPushTokenAsync() {
-    if (!Device.isDevice || !Notifications) {
-      console.log("Push notifications require a physical device and supported build");
+    if (isExpoGo || !Notifications) return;
+    
+    if (!Device.isDevice) {
+      console.log("Must use physical device for Push Notifications");
       return;
     }
 
@@ -282,3 +292,6 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+
+

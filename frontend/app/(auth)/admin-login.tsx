@@ -35,11 +35,11 @@ export default function AdminLogin() {
 
   return (
     <View style={{ flex: 1, backgroundColor: C.surface }}>
-      <StackHeader title="Admin Login" />
+      <StackHeader title="Users don't access here ⚠️" />
       <KeyboardAwareScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: insets.bottom + S.xl }} bottomOffset={20} keyboardShouldPersistTaps="handled">
         <View style={styles.icon}><Ionicons name="shield-checkmark" size={28} color={C.brandPrimary} /></View>
-        <Txt weight="semibold" size={T["2xl"]} style={{ marginTop: S.lg }}>BiteGo Admin</Txt>
-        <Txt color={C.muted} style={{ marginTop: S.xs, marginBottom: S.xl }}>Secure access to platform controls.</Txt>
+        <Txt weight="semibold" size={T["2xl"]} style={{ marginTop: S.lg }}>⚠️</Txt>
+        <Txt color={C.muted} style={{ marginTop: S.xs, marginBottom: S.xl }}>BiteGo pvt ltd</Txt>
 
         <Txt weight="medium" size={T.sm} color={C.onSurfaceTertiary} style={styles.lbl}>EMAIL</Txt>
         <TextInput testID="admin-email" value={email} onChangeText={setEmail} placeholder="email here"
