@@ -1,32 +1,25 @@
 {
   "expo": {
     "name": "BiteGo",
-    "slug": "frontend",
+    "slug": "BiteGo",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "bitego",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.emergent.bitegodelivery.abr9pa",
-      "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Find restaurants and deliver to your exact location"
-      }
+      "supportsTablet": true
     },
     "android": {
-      "jsEngine": "jsc",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#C25934"
+        "backgroundColor": "#ffffff"
       },
       "package": "com.emergent.bitegodelivery.abr9pa",
-      "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "INTERNET"
-      ],
-      "usesCleartextTraffic": true,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyBfRgu9SAyaRSO5hjyqQKZea9rM5pTURC4"
@@ -34,30 +27,19 @@
       }
     },
     "web": {
-      "bundler": "metro",
-      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
       [
-        "expo-splash-screen",
+        "react-native-maps",
         {
-          "image": "./assets/images/splash-image.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#000000"
+          "googleMapsApiKey": "AIzaSyBfRgu9SAyaRSO5hjyqQKZea9rM5pTURC4"
         }
-      ],
-      "expo-audio"
+      ]
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
     "extra": {
-      "router": {},
       "eas": {
-        "projectId": "73886452-cde7-4d48-892e-635cfa9af96f"
+        "projectId": "432acdb2-2296-44a4-9ab2-be0608467b87"
       }
     },
     "owner": "manir_dev"
