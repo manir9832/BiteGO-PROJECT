@@ -1,9 +1,10 @@
 
 
 """Admin Website backend API + optional dev seed."""
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
+from backend.server import restaurants
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from passlib.context import CryptContext
@@ -370,22 +371,282 @@ async def toggle_customer(cid: str, admin=Depends(Admin)):
 
 
 # ============================ ORDER MANAGEMENT ===============================
+# @router.get("/orders")
+# async def admin_orders(status: Optional[str] = None, page: int = 1, admin=Depends(Admin)):
+#     query = {}
+#     if status:
+#         query["status"] = status
+#     rows = await db.orders.find(query).sort("created_at", -1) \
+#         .skip((page - 1) * 30).limit(30).to_list(30)
+#     return {"orders": ser(rows)}
+
+
+# @router.get("/orders/{order_id}")
+# async def admin_order_detail(order_id: str, admin=Depends(Admin)):
+#     o = await db.orders.find_one({"_id": oid(order_id)})
+#     if not o:
+#         raise HTTPException(404, "Order not found")
+#     return {"order": ser(o)}
+
+
+
+
+
+
+
+
+
+
+
+
 @router.get("/orders")
-async def admin_orders(status: Optional[str] = None, page: int = 1, admin=Depends(Admin)):
+async def admin_orders(
+    status: Optional[str] = None, 
+    q: Optional[str] = None, 
+    page: int = 1, 
+    admin=Depends(Admin)
+):
     query = {}
-    if status:
-        query["status"] = status
-    rows = await db.orders.find(query).sort("created_at", -1) \
-        .skip((page - 1) * 30).limit(30).to_list(30)
+    
+    # ১. স্ট্যাটাস ফিল্টার (যদি 'All' বা খালি না থাকে)
+    if status and status.lower() != "all":
+        query["status"] = status.upper()
+
+    # ২. সার্চ কুয়েরি হ্যান্ডেলিং (অর্ডার আইডি বা অন্য কিছু দিয়ে সার্চ করলে)
+    if q:
+        clean_q = q.strip().replace("#", "") # হ্যাশ সাইন রিমুভ করা হলো
+        # এখানে অবজেক্ট আইডি অথবা স্ট্রিং আইডি এবং কাস্টমার নাম দুটোই চেক করা হবে
+        search_conditions = [
+            {"customer_name": {"$regex": clean_q, "$options": "i"}},
+            {"customer_phone": {"$regex": clean_q, "$options": "i"}}
+        ]
+        # যদি কুয়েরিটি সঠিক ফরম্যাটের হয় তবে _id দিয়েও খোঁজার চেষ্টা করবে
+        try:
+            search_conditions.append({"_id": oid(clean_q)})
+        except:
+            pass
+            
+        query["$or"] = search_conditions
+
+    # পেজিনেশন ও ডাটা ফেচিং (প্রয়োজনে লিমিট বাড়িয়ে বা পেজিনেশন হ্যান্ডেল করা)
+    skip_count = (page - 1) * 50
+    rows = await db.orders.find(query).sort("created_at", -1).skip(skip_count).limit(50).to_list(50)
+    
     return {"orders": ser(rows)}
 
 
-@router.get("/orders/{order_id}")
-async def admin_order_detail(order_id: str, admin=Depends(Admin)):
-    o = await db.orders.find_one({"_id": oid(order_id)})
-    if not o:
-        raise HTTPException(404, "Order not found")
-    return {"order": ser(o)}
+
+# # ============================ SETTLEMENTS ====================================
+# @router.get("/settlements/today")
+# async def settlements_today(admin=Depends(Admin)):
+#     ds = day_start()
+#     delivered = await db.orders.find(
+#         {"status": "DELIVERED", "delivered_at": {"$gte": ds}}).to_list(5000)
+#     rest_map, part_map = {}, {}
+#     for o in delivered:
+#         rk = str(o["restaurant_id"])
+#         r = rest_map.setdefault(rk, {"restaurant_id": rk, "name": o["restaurant_name"],
+#                                      "orders": 0, "gross": 0, "food_subtotal": 0,
+#                                      "platform_charge": 0, "delivery_charge": 0,
+#                                      "commission": 0, "fixed_fee": 0, "net_payable": 0,
+#                                      "paid": 0})
+#         r["orders"] += 1
+#         r["gross"] += o["customer_total"]
+#         r["food_subtotal"] += o["food_subtotal"]
+#         r["platform_charge"] += o["platform_charge"]
+#         r["delivery_charge"] += o["customer_delivery_charge"]
+#         r["commission"] += o["restaurant_commission_amount"]
+#         r["fixed_fee"] += o["restaurant_fixed_fee"]
+#         r["net_payable"] += o["restaurant_net_payable"]
+#         r["paid"] += o.get("settlement", {}).get("restaurant_paid", 0)
+#         if o.get("delivery_partner_id"):
+#             pk = str(o["delivery_partner_id"])
+#             p = part_map.setdefault(pk, {"partner_id": pk,
+#                                          "name": o.get("delivery_partner_name"),
+#                                          "deliveries": 0, "earnings": 0, "paid": 0})
+#             p["deliveries"] += 1
+#             p["earnings"] += o["delivery_partner_earning"]
+#             p["paid"] += o.get("settlement", {}).get("partner_paid", 0)
+#     for r in rest_map.values():
+#         r["remaining"] = round(r["net_payable"] - r["paid"], 2)
+#     for p in part_map.values():
+#         p["remaining"] = round(p["earnings"] - p["paid"], 2)
+#     restaurants = list(rest_map.values())
+#     partners = list(part_map.values())
+#     return {
+#         "restaurants": restaurants, "partners": partners,
+#         "summary": {
+#             "total_seller_payable": round(sum(r["net_payable"] for r in restaurants), 2),
+#             "total_partner_payable": round(sum(p["earnings"] for p in partners), 2),
+#             "total_platform_revenue": sum(o["platform_charge"] for o in delivered),
+#             "total_completed_orders": len(delivered),
+#             "total_paid": round(sum(r["paid"] for r in restaurants)
+#                                 + sum(p["paid"] for p in partners), 2),
+#             "total_remaining": round(sum(r["remaining"] for r in restaurants)
+#                                    + sum(p["remaining"] for p in partners), 2),
+#         },
+#     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# @router.get("/settlements/detailed")
+# async def get_detailed_settlements(admin=Depends(Admin)):
+#     """রেস্টুরেন্ট এবং ডেলিভারি পার্টনারদের ডেইলি, উইকলি এবং টোটাল রিমেইনিং বকেয়া হিসাব"""
+#     now_dt = datetime.now(timezone.utc)
+#     today_start = datetime(now_dt.year, now_dt.month, now_dt.day, tzinfo=timezone.utc)
+#     week_start = today_start - timedelta(days=7)
+
+#     # ১. রেস্টুরেন্ট সেটেলমেন্ট হিসাব
+#     restaurants = await db.restaurants.find({"deleted_at": None}).to_list(500)
+#     restaurant_settlements = []
+    
+#     for rest in restaurants:
+#         rest_id_str = str(rest["_id"])
+#         rest_id_obj = rest["_id"] # ObjectId সাপোর্ট করার জন্য
+        
+#         # স্ট্রিং এবং অবজেক্ট আইডি উভয় ফরম্যাটেই কুয়েরি করার জন্য $in ব্যবহার করা হলো
+#         orders = await db.orders.find({
+#             "restaurant_id": {"$in": [rest_id_str, rest_id_obj]}, 
+#             "status": "DELIVERED"
+#         }).to_list(5000)
+        
+#         daily_earnings = 0
+#         weekly_earnings = 0
+#         remaining_balance = 0
+#         total_delivered_orders = 0
+        
+#         for order in orders:
+#             # যদি সেটেল করা না থাকে
+#             if not order.get("is_settled", False):
+#                 total_delivered_orders += 1
+#                 net_amount = order.get("restaurant_net_payable", 0)
+#                 remaining_balance += net_amount
+                
+#                 order_date = order.get("delivered_at") or order.get("created_at")
+#                 if order_date:
+#                     if order_date >= today_start:
+#                         daily_earnings += net_amount
+#                     if order_date >= week_start:
+#                         weekly_earnings += net_amount
+
+#         restaurant_settlements.append({
+#             "id": rest_id_str,
+#             "name": rest.get("name"),
+#             "orders_count": total_delivered_orders,
+#             "daily_earnings": round(daily_earnings, 2),
+#             "weekly_earnings": round(weekly_earnings, 2),
+#             "remaining": round(remaining_balance, 2)
+#         })
+
+#     # ২. ডেলিভারি পার্টনার সেটেলমেন্ট হিসাব
+#     partners = await db.delivery_partners.find({}).to_list(500)
+#     partner_settlements = []
+    
+#     for partner in partners:
+#         partner_id_str = str(partner["_id"])
+#         partner_id_obj = partner["_id"] # ObjectId সাপোর্ট করার জন্য
+        
+#         orders = await db.orders.find({
+#             "delivery_partner_id": {"$in": [partner_id_str, partner_id_obj]}, 
+#             "status": "DELIVERED"
+#         }).to_list(5000)
+        
+#         daily_earnings = 0
+#         weekly_earnings = 0
+#         remaining_balance = 0
+#         total_deliveries = 0
+        
+#         for order in orders:
+#             if not order.get("partner_settled", False):
+#                 total_deliveries += 1
+#                 earning = order.get("delivery_partner_earning", 0)
+#                 remaining_balance += earning
+                
+#                 order_date = order.get("delivered_at") or order.get("created_at")
+#                 if order_date:
+#                     if order_date >= today_start:
+#                         daily_earnings += earning
+#                     if order_date >= week_start:
+#                         weekly_earnings += earning
+
+#         partner_settlements.append({
+#             "id": partner_id_str,
+#             "name": partner.get("name", "Delivery Partner"),
+#             "deliveries_count": total_deliveries,
+#             "daily_earnings": round(daily_earnings, 2),
+#             "weekly_earnings": round(weekly_earnings, 2),
+#             "remaining": round(remaining_balance, 2)
+#         })
+
+#     return {
+#         "restaurants": restaurant_settlements,
+#         "partners": partner_settlements
+#     }
+
+
+# @router.post("/settlements/restaurant/{rest_id}/pay")
+# async def settle_restaurant_balance(rest_id: str, admin=Depends(Admin)):
+#     """অ্যাডমিন পে বাটন চাপলে নির্দিষ্ট রেস্টুরেন্টের সব বকেয়া পেমেন্ট ক্লিয়ার ও ব্যালেন্স 0 হয়ে যাবে"""
+#     try:
+#         r_oid = oid(rest_id)
+#     except:
+#         r_oid = rest_id
+
+#     result = await db.orders.update_many(
+#         {"restaurant_id": {"$in": [rest_id, r_oid]}, "status": "DELIVERED", "is_settled": {"$ne": True}},
+#         {"$set": {"is_settled": True, "settled_at": datetime.now(timezone.utc)}}
+#     )
+#     await audit(admin, "settle_restaurant", target=rest_id, meta={"modified_count": result.modified_count})
+#     return {"success": True, "message": "Restaurant payment settled and balance reset to 0"}
+
+
+# @router.post("/settlements/partner/{partner_id}/pay")
+# async def settle_partner_balance(partner_id: str, admin=Depends(Admin)):
+#     """অ্যাডমিন পে বাটন চাপলে নির্দিষ্ট ডেলিভারি পার্টনারের বকেয়া পেমেন্ট ক্লিয়ার ও ব্যালেন্স 0 হয়ে যাবে"""
+#     try:
+#         p_oid = oid(partner_id)
+#     except:
+#         p_oid = partner_id
+
+#     result = await db.orders.update_many(
+#         {"delivery_partner_id": {"$in": [partner_id, p_oid]}, "status": "DELIVERED", "partner_settled": {"$ne": True}},
+#         {"$set": {"partner_settled": True, "partner_settled_at": datetime.now(timezone.utc)}}
+#     )
+#     await audit(admin, "settle_delivery_partner", target=partner_id, meta={"modified_count": result.modified_count})
+#     return {"success": True, "message": "Delivery partner payment settled and balance reset to 0"}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # ============================ SETTLEMENTS ====================================
@@ -393,36 +654,39 @@ async def admin_order_detail(order_id: str, admin=Depends(Admin)):
 async def settlements_today(admin=Depends(Admin)):
     ds = day_start()
     delivered = await db.orders.find(
-        {"status": "DELIVERED", "delivered_at": {"$gte": ds}}).to_list(5000)
+        {"status": {"$regex": "^delivered$", "$options": "i"}, "delivered_at": {"$gte": ds}}).to_list(5000)
     rest_map, part_map = {}, {}
     for o in delivered:
-        rk = str(o["restaurant_id"])
-        r = rest_map.setdefault(rk, {"restaurant_id": rk, "name": o["restaurant_name"],
-                                     "orders": 0, "gross": 0, "food_subtotal": 0,
-                                     "platform_charge": 0, "delivery_charge": 0,
-                                     "commission": 0, "fixed_fee": 0, "net_payable": 0,
-                                     "paid": 0})
+        rk = str(o.get("restaurant_id"))
+        r = rest_map.setdefault(rk, {"restaurant_id": rk, "name": o.get("restaurant_name"),
+                                   "orders": 0, "gross": 0, "food_subtotal": 0,
+                                   "platform_charge": 0, "delivery_charge": 0,
+                                   "commission": 0, "fixed_fee": 0, "net_payable": 0,
+                                   "paid": 0})
         r["orders"] += 1
-        r["gross"] += o["customer_total"]
-        r["food_subtotal"] += o["food_subtotal"]
-        r["platform_charge"] += o["platform_charge"]
-        r["delivery_charge"] += o["customer_delivery_charge"]
-        r["commission"] += o["restaurant_commission_amount"]
-        r["fixed_fee"] += o["restaurant_fixed_fee"]
-        r["net_payable"] += o["restaurant_net_payable"]
+        r["gross"] += o.get("customer_total", 0)
+        r["food_subtotal"] += o.get("food_subtotal", 0)
+        r["platform_charge"] += o.get("platform_charge", 0)
+        r["delivery_charge"] += o.get("customer_delivery_charge", 0)
+        r["commission"] += o.get("restaurant_commission_amount", 0)
+        r["fixed_fee"] += o.get("restaurant_fixed_fee", 0)
+        r["net_payable"] += o.get("restaurant_net_payable", 0)
         r["paid"] += o.get("settlement", {}).get("restaurant_paid", 0)
+        
         if o.get("delivery_partner_id"):
             pk = str(o["delivery_partner_id"])
             p = part_map.setdefault(pk, {"partner_id": pk,
-                                         "name": o.get("delivery_partner_name"),
-                                         "deliveries": 0, "earnings": 0, "paid": 0})
+                                       "name": o.get("delivery_partner_name"),
+                                       "deliveries": 0, "earnings": 0, "paid": 0})
             p["deliveries"] += 1
-            p["earnings"] += o["delivery_partner_earning"]
+            p["earnings"] += o.get("delivery_partner_earning", 0)
             p["paid"] += o.get("settlement", {}).get("partner_paid", 0)
+            
     for r in rest_map.values():
         r["remaining"] = round(r["net_payable"] - r["paid"], 2)
     for p in part_map.values():
         p["remaining"] = round(p["earnings"] - p["paid"], 2)
+        
     restaurants = list(rest_map.values())
     partners = list(part_map.values())
     return {
@@ -430,14 +694,154 @@ async def settlements_today(admin=Depends(Admin)):
         "summary": {
             "total_seller_payable": round(sum(r["net_payable"] for r in restaurants), 2),
             "total_partner_payable": round(sum(p["earnings"] for p in partners), 2),
-            "total_platform_revenue": sum(o["platform_charge"] for o in delivered),
+            "total_platform_revenue": sum(o.get("platform_charge", 0) for o in delivered),
             "total_completed_orders": len(delivered),
             "total_paid": round(sum(r["paid"] for r in restaurants)
-                                + sum(p["paid"] for p in partners), 2),
+                                    + sum(p["paid"] for p in partners), 2),
             "total_remaining": round(sum(r["remaining"] for r in restaurants)
-                                   + sum(p["remaining"] for p in partners), 2),
+                                     + sum(p["remaining"] for p in partners), 2),
         },
     }
+
+
+# ============================ UPDATED SETTLEMENTS & PAYOUTS ====================
+
+@router.get("/settlements/detailed")
+async def get_detailed_settlements(admin=Depends(Admin)):
+    """রেস্টুরেন্ট এবং ডেলিভারি পার্টনারদের ডেইলি, উইকলি এবং টোটাল রিমেইনিং বকেয়া হিসাব"""
+    now_dt = datetime.now(timezone.utc)
+    today_start = datetime(now_dt.year, now_dt.month, now_dt.day, tzinfo=timezone.utc)
+    week_start = today_start - timedelta(days=7)
+
+    # ১. রেস্টুরেন্ট সেটেলমেন্ট হিসাব
+    # ১. রেস্টুরেন্ট সেটেলমেন্ট হিসাব (সব রেস্টুরেন্ট এনে পাইথনে ফিল্টার করা হলো)
+    all_rests = await db.restaurants.find({}).to_list(500)
+    restaurants = [r for r in all_rests if not r.get("deleted_at")]
+    restaurant_settlements = []
+    
+    for rest in restaurants:
+        rest_id_str = str(rest["_id"])
+        rest_id_obj = rest["_id"]
+        
+        # String এবং ObjectId উভয় ফরম্যাট সাপোর্ট করার জন্য এবং কেস-ইনসেন্সিটিভ স্ট্যাটাস চেক
+        orders = await db.orders.find({
+            "restaurant_id": {"$in": [rest_id_str, rest_id_obj]}, 
+            "status": {"$regex": "^delivered$", "$options": "i"}
+        }).to_list(5000)
+        
+        daily_earnings = 0
+        weekly_earnings = 0
+        remaining_balance = 0
+        total_delivered_orders = 0
+        
+        for order in orders:
+            # যদি is_settled ফিল্ড ট্রু না থাকে (False বা Missing হলেও ধরবে)
+            if not order.get("is_settled", False):
+                total_delivered_orders += 1
+                net_amount = order.get("restaurant_net_payable", 0)
+                remaining_balance += net_amount
+                
+                order_date = order.get("delivered_at") or order.get("created_at")
+                if order_date:
+                    if order_date >= today_start:
+                        daily_earnings += net_amount
+                    if order_date >= week_start:
+                        weekly_earnings += net_amount
+
+        restaurant_settlements.append({
+            "id": rest_id_str,
+            "name": rest.get("name"),
+            "orders_count": total_delivered_orders,
+            "daily_earnings": round(daily_earnings, 2),
+            "weekly_earnings": round(weekly_earnings, 2),
+            "remaining": round(remaining_balance, 2)
+        })
+
+    # ২. ডেলিভারি পার্টনার সেটেলমেন্ট হিসাব
+    partners = await db.delivery_partners.find({}).to_list(500)
+    partner_settlements = []
+    
+    for partner in partners:
+        partner_id_str = str(partner["_id"])
+        partner_id_obj = partner["_id"]
+        
+        orders = await db.orders.find({
+            "delivery_partner_id": {"$in": [partner_id_str, partner_id_obj]}, 
+            "status": {"$regex": "^delivered$", "$options": "i"}
+        }).to_list(5000)
+        
+        daily_earnings = 0
+        weekly_earnings = 0
+        remaining_balance = 0
+        total_deliveries = 0
+        
+        for order in orders:
+            if not order.get("partner_settled", False):
+                total_deliveries += 1
+                earning = order.get("delivery_partner_earning", 0)
+                remaining_balance += earning
+                
+                order_date = order.get("delivered_at") or order.get("created_at")
+                if order_date:
+                    if order_date >= today_start:
+                        daily_earnings += earning
+                    if order_date >= week_start:
+                        weekly_earnings += earning
+
+        partner_settlements.append({
+            "id": partner_id_str,
+            "name": partner.get("name", "Delivery Partner"),
+            "deliveries_count": total_deliveries,
+            "daily_earnings": round(daily_earnings, 2),
+            "weekly_earnings": round(weekly_earnings, 2),
+            "remaining": round(remaining_balance, 2)
+        })
+
+    return {
+        "restaurants": restaurant_settlements,
+        "partners": partner_settlements
+    }
+
+
+@router.post("/settlements/restaurant/{rest_id}/pay")
+async def settle_restaurant_balance(rest_id: str, admin=Depends(Admin)):
+    """অ্যাডমিন পে বাটন চাপলে নির্দিষ্ট রেস্টুরেন্টের সব বকেয়া পেমেন্ট ক্লিয়ার ও ব্যালেন্স 0 হয়ে যাবে"""
+    try:
+        r_oid = oid(rest_id)
+    except:
+        r_oid = rest_id
+
+    result = await db.orders.update_many(
+        {"restaurant_id": {"$in": [rest_id, r_oid]}, "status": {"$regex": "^delivered$", "$options": "i"}, "is_settled": {"$ne": True}},
+        {"$set": {"is_settled": True, "settled_at": datetime.now(timezone.utc)}}
+    )
+    await audit(admin, "settle_restaurant", target=rest_id, meta={"modified_count": result.modified_count})
+    return {"success": True, "message": "Restaurant payment settled and balance reset to 0"}
+
+
+@router.post("/settlements/partner/{partner_id}/pay")
+async def settle_partner_balance(partner_id: str, admin=Depends(Admin)):
+    """অ্যাডমিন পে বাটন চাপলে নির্দিষ্ট ডেলিভারি পার্টনারের বকেয়া পেমেন্ট ক্লিয়ার ও ব্যালেন্স 0 হয়ে যাবে"""
+    try:
+        p_oid = oid(partner_id)
+    except:
+        p_oid = partner_id
+
+    result = await db.orders.update_many(
+        {"delivery_partner_id": {"$in": [partner_id, p_oid]}, "status": {"$regex": "^delivered$", "$options": "i"}, "partner_settled": {"$ne": True}},
+        {"$set": {"partner_settled": True, "partner_settled_at": datetime.now(timezone.utc)}}
+    )
+    await audit(admin, "settle_delivery_partner", target=partner_id, meta={"modified_count": result.modified_count})
+    return {"success": True, "message": "Delivery partner payment settled and balance reset to 0"}
+
+
+
+
+
+
+
+
+
 
 
 # ============================ CATEGORIES =====================================
