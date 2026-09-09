@@ -4,7 +4,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
-from backend.server import restaurants
+from .server import restaurants
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from passlib.context import CryptContext
