@@ -437,55 +437,55 @@ async def admin_orders(
 
 
 # # ============================ SETTLEMENTS ====================================
-# @router.get("/settlements/today")
-# async def settlements_today(admin=Depends(Admin)):
-#     ds = day_start()
-#     delivered = await db.orders.find(
-#         {"status": "DELIVERED", "delivered_at": {"$gte": ds}}).to_list(5000)
-#     rest_map, part_map = {}, {}
-#     for o in delivered:
-#         rk = str(o["restaurant_id"])
-#         r = rest_map.setdefault(rk, {"restaurant_id": rk, "name": o["restaurant_name"],
-#                                      "orders": 0, "gross": 0, "food_subtotal": 0,
-#                                      "platform_charge": 0, "delivery_charge": 0,
-#                                      "commission": 0, "fixed_fee": 0, "net_payable": 0,
-#                                      "paid": 0})
-#         r["orders"] += 1
-#         r["gross"] += o["customer_total"]
-#         r["food_subtotal"] += o["food_subtotal"]
-#         r["platform_charge"] += o["platform_charge"]
-#         r["delivery_charge"] += o["customer_delivery_charge"]
-#         r["commission"] += o["restaurant_commission_amount"]
-#         r["fixed_fee"] += o["restaurant_fixed_fee"]
-#         r["net_payable"] += o["restaurant_net_payable"]
-#         r["paid"] += o.get("settlement", {}).get("restaurant_paid", 0)
-#         if o.get("delivery_partner_id"):
-#             pk = str(o["delivery_partner_id"])
-#             p = part_map.setdefault(pk, {"partner_id": pk,
-#                                          "name": o.get("delivery_partner_name"),
-#                                          "deliveries": 0, "earnings": 0, "paid": 0})
-#             p["deliveries"] += 1
-#             p["earnings"] += o["delivery_partner_earning"]
-#             p["paid"] += o.get("settlement", {}).get("partner_paid", 0)
-#     for r in rest_map.values():
-#         r["remaining"] = round(r["net_payable"] - r["paid"], 2)
-#     for p in part_map.values():
-#         p["remaining"] = round(p["earnings"] - p["paid"], 2)
-#     restaurants = list(rest_map.values())
-#     partners = list(part_map.values())
-#     return {
-#         "restaurants": restaurants, "partners": partners,
-#         "summary": {
-#             "total_seller_payable": round(sum(r["net_payable"] for r in restaurants), 2),
-#             "total_partner_payable": round(sum(p["earnings"] for p in partners), 2),
-#             "total_platform_revenue": sum(o["platform_charge"] for o in delivered),
-#             "total_completed_orders": len(delivered),
-#             "total_paid": round(sum(r["paid"] for r in restaurants)
-#                                 + sum(p["paid"] for p in partners), 2),
-#             "total_remaining": round(sum(r["remaining"] for r in restaurants)
-#                                    + sum(p["remaining"] for p in partners), 2),
-#         },
-#     }
+@router.get("/settlements/today")
+async def settlements_today(admin=Depends(Admin)):
+    ds = day_start()
+    delivered = await db.orders.find(
+        {"status": "DELIVERED", "delivered_at": {"$gte": ds}}).to_list(5000)
+    rest_map, part_map = {}, {}
+    for o in delivered:
+        rk = str(o["restaurant_id"])
+        r = rest_map.setdefault(rk, {"restaurant_id": rk, "name": o["restaurant_name"],
+                                     "orders": 0, "gross": 0, "food_subtotal": 0,
+                                     "platform_charge": 0, "delivery_charge": 0,
+                                     "commission": 0, "fixed_fee": 0, "net_payable": 0,
+                                     "paid": 0})
+        r["orders"] += 1
+        r["gross"] += o["customer_total"]
+        r["food_subtotal"] += o["food_subtotal"]
+        r["platform_charge"] += o["platform_charge"]
+        r["delivery_charge"] += o["customer_delivery_charge"]
+        r["commission"] += o["restaurant_commission_amount"]
+        r["fixed_fee"] += o["restaurant_fixed_fee"]
+        r["net_payable"] += o["restaurant_net_payable"]
+        r["paid"] += o.get("settlement", {}).get("restaurant_paid", 0)
+        if o.get("delivery_partner_id"):
+            pk = str(o["delivery_partner_id"])
+            p = part_map.setdefault(pk, {"partner_id": pk,
+                                         "name": o.get("delivery_partner_name"),
+                                         "deliveries": 0, "earnings": 0, "paid": 0})
+            p["deliveries"] += 1
+            p["earnings"] += o["delivery_partner_earning"]
+            p["paid"] += o.get("settlement", {}).get("partner_paid", 0)
+    for r in rest_map.values():
+        r["remaining"] = round(r["net_payable"] - r["paid"], 2)
+    for p in part_map.values():
+        p["remaining"] = round(p["earnings"] - p["paid"], 2)
+    restaurants = list(rest_map.values())
+    partners = list(part_map.values())
+    return {
+        "restaurants": restaurants, "partners": partners,
+        "summary": {
+            "total_seller_payable": round(sum(r["net_payable"] for r in restaurants), 2),
+            "total_partner_payable": round(sum(p["earnings"] for p in partners), 2),
+            "total_platform_revenue": sum(o["platform_charge"] for o in delivered),
+            "total_completed_orders": len(delivered),
+            "total_paid": round(sum(r["paid"] for r in restaurants)
+                                + sum(p["paid"] for p in partners), 2),
+            "total_remaining": round(sum(r["remaining"] for r in restaurants)
+                                   + sum(p["remaining"] for p in partners), 2),
+        },
+    }
 
 
 
@@ -650,58 +650,58 @@ async def admin_orders(
 
 
 # ============================ SETTLEMENTS ====================================
-@router.get("/settlements/today")
-async def settlements_today(admin=Depends(Admin)):
-    ds = day_start()
-    delivered = await db.orders.find(
-        {"status": {"$regex": "^delivered$", "$options": "i"}, "delivered_at": {"$gte": ds}}).to_list(5000)
-    rest_map, part_map = {}, {}
-    for o in delivered:
-        rk = str(o.get("restaurant_id"))
-        r = rest_map.setdefault(rk, {"restaurant_id": rk, "name": o.get("restaurant_name"),
-                                   "orders": 0, "gross": 0, "food_subtotal": 0,
-                                   "platform_charge": 0, "delivery_charge": 0,
-                                   "commission": 0, "fixed_fee": 0, "net_payable": 0,
-                                   "paid": 0})
-        r["orders"] += 1
-        r["gross"] += o.get("customer_total", 0)
-        r["food_subtotal"] += o.get("food_subtotal", 0)
-        r["platform_charge"] += o.get("platform_charge", 0)
-        r["delivery_charge"] += o.get("customer_delivery_charge", 0)
-        r["commission"] += o.get("restaurant_commission_amount", 0)
-        r["fixed_fee"] += o.get("restaurant_fixed_fee", 0)
-        r["net_payable"] += o.get("restaurant_net_payable", 0)
-        r["paid"] += o.get("settlement", {}).get("restaurant_paid", 0)
+# @router.get("/settlements/today")
+# async def settlements_today(admin=Depends(Admin)):
+#     ds = day_start()
+#     delivered = await db.orders.find(
+#         {"status": {"$regex": "^delivered$", "$options": "i"}, "delivered_at": {"$gte": ds}}).to_list(5000)
+#     rest_map, part_map = {}, {}
+#     for o in delivered:
+#         rk = str(o.get("restaurant_id"))
+#         r = rest_map.setdefault(rk, {"restaurant_id": rk, "name": o.get("restaurant_name"),
+#                                    "orders": 0, "gross": 0, "food_subtotal": 0,
+#                                    "platform_charge": 0, "delivery_charge": 0,
+#                                    "commission": 0, "fixed_fee": 0, "net_payable": 0,
+#                                    "paid": 0})
+#         r["orders"] += 1
+#         r["gross"] += o.get("customer_total", 0)
+#         r["food_subtotal"] += o.get("food_subtotal", 0)
+#         r["platform_charge"] += o.get("platform_charge", 0)
+#         r["delivery_charge"] += o.get("customer_delivery_charge", 0)
+#         r["commission"] += o.get("restaurant_commission_amount", 0)
+#         r["fixed_fee"] += o.get("restaurant_fixed_fee", 0)
+#         r["net_payable"] += o.get("restaurant_net_payable", 0)
+#         r["paid"] += o.get("settlement", {}).get("restaurant_paid", 0)
         
-        if o.get("delivery_partner_id"):
-            pk = str(o["delivery_partner_id"])
-            p = part_map.setdefault(pk, {"partner_id": pk,
-                                       "name": o.get("delivery_partner_name"),
-                                       "deliveries": 0, "earnings": 0, "paid": 0})
-            p["deliveries"] += 1
-            p["earnings"] += o.get("delivery_partner_earning", 0)
-            p["paid"] += o.get("settlement", {}).get("partner_paid", 0)
+#         if o.get("delivery_partner_id"):
+#             pk = str(o["delivery_partner_id"])
+#             p = part_map.setdefault(pk, {"partner_id": pk,
+#                                        "name": o.get("delivery_partner_name"),
+#                                        "deliveries": 0, "earnings": 0, "paid": 0})
+#             p["deliveries"] += 1
+#             p["earnings"] += o.get("delivery_partner_earning", 0)
+#             p["paid"] += o.get("settlement", {}).get("partner_paid", 0)
             
-    for r in rest_map.values():
-        r["remaining"] = round(r["net_payable"] - r["paid"], 2)
-    for p in part_map.values():
-        p["remaining"] = round(p["earnings"] - p["paid"], 2)
+#     for r in rest_map.values():
+#         r["remaining"] = round(r["net_payable"] - r["paid"], 2)
+#     for p in part_map.values():
+#         p["remaining"] = round(p["earnings"] - p["paid"], 2)
         
-    restaurants = list(rest_map.values())
-    partners = list(part_map.values())
-    return {
-        "restaurants": restaurants, "partners": partners,
-        "summary": {
-            "total_seller_payable": round(sum(r["net_payable"] for r in restaurants), 2),
-            "total_partner_payable": round(sum(p["earnings"] for p in partners), 2),
-            "total_platform_revenue": sum(o.get("platform_charge", 0) for o in delivered),
-            "total_completed_orders": len(delivered),
-            "total_paid": round(sum(r["paid"] for r in restaurants)
-                                    + sum(p["paid"] for p in partners), 2),
-            "total_remaining": round(sum(r["remaining"] for r in restaurants)
-                                     + sum(p["remaining"] for p in partners), 2),
-        },
-    }
+#     restaurants = list(rest_map.values())
+#     partners = list(part_map.values())
+#     return {
+#         "restaurants": restaurants, "partners": partners,
+#         "summary": {
+#             "total_seller_payable": round(sum(r["net_payable"] for r in restaurants), 2),
+#             "total_partner_payable": round(sum(p["earnings"] for p in partners), 2),
+#             "total_platform_revenue": sum(o.get("platform_charge", 0) for o in delivered),
+#             "total_completed_orders": len(delivered),
+#             "total_paid": round(sum(r["paid"] for r in restaurants)
+#                                     + sum(p["paid"] for p in partners), 2),
+#             "total_remaining": round(sum(r["remaining"] for r in restaurants)
+#                                      + sum(p["remaining"] for p in partners), 2),
+#         },
+#     }
 
 
 # ============================ UPDATED SETTLEMENTS & PAYOUTS ====================
