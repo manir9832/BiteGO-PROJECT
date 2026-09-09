@@ -1,30 +1,3 @@
-// import { Redirect } from "expo-router";
-// import { View } from "react-native";
-// import { useAuth } from "@/src/context/auth";
-// import { Loading } from "@/src/components/ui";
-// import { C } from "@/src/theme";
-
-// export default function Index() {
-//   const { user, booting } = useAuth();
-
-//   if (booting) {
-//     return <View style={{ flex: 1, backgroundColor: C.surface }}><Loading /></View>;
-//   }
-//   if (!user) return <Redirect href="/(auth)/login" />;
-//   if (user.role === "restaurant") return <Redirect href="/(restaurant)" />;
-//   if (user.role === "delivery") return <Redirect href="/(delivery)" />;
-//   if (user.role === "admin") return <Redirect href="/(admin)" />;
-//   if (!user.name) return <Redirect href="/(auth)/complete-profile" />;
-//   return <Redirect href="/(tabs)" />;
-// }
-
-
-
-
-
-
-
-
 
 
 
