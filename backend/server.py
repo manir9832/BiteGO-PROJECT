@@ -1,14 +1,5 @@
 
 
-
-
-
-
-
-
-
-
-
 """BiteGo API — FastAPI + MongoDB. Backend is authoritative for all business rules."""
 import asyncio
 import logging
@@ -478,14 +469,31 @@ async def quote_order(body: CreateOrder, user=Depends(require_roles("customer"))
                                  address["lat"], address["lng"])
     distance = route["distance_km"]
     serviceable = distance <= settings["max_service_radius_km"]
+    # snap_items = []
+    # for it in body.items:
+    #     f = await db.foods.find_one({"_id": oid(it.food_id),
+    #                                  "restaurant_id": restaurant["_id"],
+    #                                  "deleted_at": None})
+    #     if not f:
+    #         continue
+    #     snap_items.append({"price": int(f["price"]), "quantity": it.quantity})
+
     snap_items = []
     for it in body.items:
         f = await db.foods.find_one({"_id": oid(it.food_id),
-                                     "restaurant_id": restaurant["_id"],
-                                     "deleted_at": None})
+                                   "restaurant_id": restaurant["_id"],
+                                   "deleted_at": None})
         if not f:
             continue
-        snap_items.append({"price": int(f["price"]), "quantity": it.quantity})
+        
+        # ডিসকাউন্ট প্রাইস চেক করা (যদি discount_price থাকে এবং তা মূল দামের চেয়ে কম হয়)
+        unit_price = int(f["price"])
+        disc_price = f.get("discount_price")
+        if disc_price is not None and int(disc_price) < unit_price:
+            unit_price = int(disc_price)
+            
+        snap_items.append({"price": unit_price, "quantity": it.quantity})
+
     totals = finance.compute_totals(
         snap_items, distance, settings,
         restaurant.get("commission_pct", settings["restaurant_commission_pct"]),
@@ -535,17 +543,39 @@ async def create_order(body: CreateOrder, user=Depends(require_roles("customer")
     if distance > settings["max_service_radius_km"]:
         raise HTTPException(403, "Address is outside the service area")
 
+    # snap_items = []
+    # for it in body.items:
+    #     f = await db.foods.find_one({"_id": oid(it.food_id),
+    #                                  "restaurant_id": restaurant["_id"],
+    #                                  "deleted_at": None})
+    #     if not f or not f.get("available", True):
+    #         raise HTTPException(409, "An item is no longer available")
+    #     snap_items.append({
+    #         "food_id": f["_id"], "name": f["name"], "price": int(f["price"]),
+    #         "quantity": it.quantity, "image": f.get("image"),
+    #     })
+
+
     snap_items = []
     for it in body.items:
         f = await db.foods.find_one({"_id": oid(it.food_id),
-                                     "restaurant_id": restaurant["_id"],
-                                     "deleted_at": None})
+                                   "restaurant_id": restaurant["_id"],
+                                   "deleted_at": None})
         if not f or not f.get("available", True):
             raise HTTPException(409, "An item is no longer available")
+            
+        # ডিসকাউন্ট প্রাইস অ্যাপ্লাই করার লজিক
+        unit_price = int(f["price"])
+        disc_price = f.get("discount_price")
+        if disc_price is not None and int(disc_price) < unit_price:
+            unit_price = int(disc_price)
+
         snap_items.append({
-            "food_id": f["_id"], "name": f["name"], "price": int(f["price"]),
+            "food_id": f["_id"], "name": f["name"], "price": unit_price,
             "quantity": it.quantity, "image": f.get("image"),
         })
+
+
     if not snap_items:
         raise HTTPException(400, "Cart is empty")
 

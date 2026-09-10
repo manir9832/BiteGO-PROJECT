@@ -62,10 +62,21 @@ class RestaurantProfile(BaseModel):
     is_open: Optional[bool] = None
 
 
+# class FoodBody(BaseModel):
+#     name: str
+#     description: str = ""
+#     price: int = Field(ge=0)
+#     category: str
+#     image: Optional[str] = None
+#     veg: bool = True
+#     available: bool = True
+
+
 class FoodBody(BaseModel):
     name: str
     description: str = ""
     price: int = Field(ge=0)
+    discount_price: Optional[int] = Field(None, ge=0)
     category: str
     image: Optional[str] = None
     veg: bool = True
@@ -227,7 +238,50 @@ async def ready_order(order_id: str, user=Depends(require_roles("restaurant"))):
     return {"order": ser(updated)}
 
 
+# # --- MENU / FOODS ---
+# @router.get("/restaurant/foods")
+# async def restaurant_foods(user=Depends(require_roles("restaurant", "admin"))):
+#     r = await _my_restaurant(user)
+#     if not r:
+#         return {"foods": []}
+#     rows = await db.foods.find({"restaurant_id": r["_id"], "deleted_at": None}).to_list(500)
+#     return {"foods": ser(rows)}
+
+
+# @router.post("/restaurant/foods")
+# async def add_food(body: FoodBody, user=Depends(require_roles("restaurant"))):
+#     r = await _my_restaurant(user)
+#     _ensure_approved(r)
+#     doc = {**body.model_dump(), "restaurant_id": r["_id"],
+#            "deleted_at": None, "created_at": now()}
+#     res = await db.foods.insert_one(doc)
+#     return {"food": ser(await db.foods.find_one({"_id": res.inserted_id}))}
+
+
+# @router.put("/restaurant/foods/{food_id}")
+# async def edit_food(food_id: str, body: FoodBody,
+#                     user=Depends(require_roles("restaurant"))):
+#     r = await _my_restaurant(user)
+#     _ensure_approved(r)
+#     await db.foods.update_one({"_id": oid(food_id), "restaurant_id": r["_id"]},
+#                               {"$set": body.model_dump()})
+#     return {"food": ser(await db.foods.find_one({"_id": oid(food_id)}))}
+
+
+# @router.delete("/restaurant/foods/{food_id}")
+# async def delete_food(food_id: str, user=Depends(require_roles("restaurant"))):
+#     r = await _my_restaurant(user)
+#     _ensure_approved(r)
+#     await db.foods.update_one({"_id": oid(food_id), "restaurant_id": r["_id"]},
+#                               {"$set": {"deleted_at": now(), "available": False}})
+#     return {"ok": True}
+
+
+
 # --- MENU / FOODS ---
+
+
+
 @router.get("/restaurant/foods")
 async def restaurant_foods(user=Depends(require_roles("restaurant", "admin"))):
     r = await _my_restaurant(user)
@@ -264,10 +318,6 @@ async def delete_food(food_id: str, user=Depends(require_roles("restaurant"))):
     await db.foods.update_one({"_id": oid(food_id), "restaurant_id": r["_id"]},
                               {"$set": {"deleted_at": now(), "available": False}})
     return {"ok": True}
-
-
-
-
 
 
 
