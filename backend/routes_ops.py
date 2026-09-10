@@ -323,6 +323,38 @@ async def delete_food(food_id: str, user=Depends(require_roles("restaurant"))):
 
 
 
+
+@router.get("/restaurant/earnings")
+async def restaurant_earnings(user=Depends(require_roles("restaurant"))):
+    r = await _my_restaurant(user)
+    _ensure_approved(r)
+    rid = r["_id"]
+    
+    # ডেলিভারি হওয়া অর্ডারগুলো ফেচ করা
+    delivered_orders = await db.orders.find(
+        {"restaurant_id": rid, "status": "DELIVERED"}
+    ).to_list(10000)
+    
+    gross = sum(o.get("food_subtotal", 0) for o in delivered_orders)
+    commission = sum(o.get("restaurant_commission", 0) for o in delivered_orders)
+    fixed_fee = sum(o.get("restaurant_fixed_fee", 0) for o in delivered_orders)
+    net = sum(o.get("restaurant_net_payable", 0) for o in delivered_orders)
+    
+    return {
+        "gross_sales": gross,
+        "commission": commission,
+        "fixed_fee": fixed_fee,
+        "net_earning": net,
+        "orders": len(delivered_orders),
+        "paid_amount": 0
+    }
+
+
+
+
+
+
+
 @router.get("/restaurant/reviews")
 async def restaurant_reviews(user=Depends(require_roles("restaurant"))):
     r = await _my_restaurant(user)
