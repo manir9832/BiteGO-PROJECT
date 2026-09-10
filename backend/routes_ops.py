@@ -266,19 +266,99 @@ async def delete_food(food_id: str, user=Depends(require_roles("restaurant"))):
     return {"ok": True}
 
 
+# @router.get("/restaurant/earnings")
+# async def restaurant_earnings(user=Depends(require_roles("restaurant"))):
+#     r = await _my_restaurant(user)
+#     if not r or r.get("status") != "approved":
+#         return {"gross_sales": 0, "commission": 0, "fixed_fee": 0, "net_earning": 0, "orders": 0}
+#     delivered = await db.orders.find(
+#         {"restaurant_id": r["_id"], "status": "DELIVERED"}).to_list(1000)
+#     gross = sum(o.get("food_subtotal", 0) for o in delivered)
+#     commission = sum(o.get("restaurant_commission_amount", 0) for o in delivered)
+#     fixed = sum(o.get("restaurant_fixed_fee", 0) for o in delivered)
+#     net = sum(o.get("restaurant_net_payable", 0) for o in delivered)
+#     return {"gross_sales": gross, "commission": commission, "fixed_fee": fixed,
+#             "net_earning": net, "orders": len(delivered)}
+
+
+
+
+
+
+# @router.get("/restaurant/earnings")
+# async def restaurant_earnings(user=Depends(require_roles("restaurant"))):
+#     r = await _my_restaurant(user)
+#     if not r or r.get("status") != "approved":
+#         return {"gross_sales": 0, "commission": 0, "fixed_fee": 0, "net_earning": 0, "orders": 0}
+    
+#     # শুধুমাত্র যে অর্ডারগুলোর টাকা এখনো সেটেল বা পে করা হয়নি (is_settled: false বা না থাকলে) সেগুলো ফিল্টার করা হবে
+#     delivered = await db.orders.find({
+#         "restaurant_id": r["_id"], 
+#         "status": "DELIVERED",
+#         "is_settled": {"$ne": True}  # পেইড অর্ডার বাদ দেওয়ার শর্ত
+#     }).to_list(1000)
+    
+#     gross = sum(o.get("food_subtotal", 0) for o in delivered)
+#     commission = sum(o.get("restaurant_commission_amount", 0) for o in delivered)
+#     fixed = sum(o.get("restaurant_fixed_fee", 0) for o in delivered)
+#     net = sum(o.get("restaurant_net_payable", 0) for o in delivered)
+#     return {"gross_sales": gross, "commission": commission, "fixed_fee": fixed,
+#             "net_earning": net, "orders": len(delivered)}
+
+
+
+
+
+
+
+
+
+
+
+
+
 @router.get("/restaurant/earnings")
 async def restaurant_earnings(user=Depends(require_roles("restaurant"))):
     r = await _my_restaurant(user)
     if not r or r.get("status") != "approved":
-        return {"gross_sales": 0, "commission": 0, "fixed_fee": 0, "net_earning": 0, "orders": 0}
-    delivered = await db.orders.find(
-        {"restaurant_id": r["_id"], "status": "DELIVERED"}).to_list(1000)
+        return {
+            "gross_sales": 0, "commission": 0, "fixed_fee": 0, 
+            "net_earning": 0, "orders": 0, "already_paid": 0
+        }
+    
+    rest_id = r["_id"]
+    
+    # ১. শুধুমাত্র যে অর্ডারগুলোর টাকা এখনো সেটেল বা পে করা হয়নি (unsettled)
+    delivered = await db.orders.find({
+        "restaurant_id": rest_id, 
+        "status": {"$regex": "^delivered$", "$options": "i"},  # ছোট/বড় হাতের দুটো স্ট্যাটাসই ধরবে
+        "is_settled": {"$ne": True}  
+    }).to_list(1000)
+    
     gross = sum(o.get("food_subtotal", 0) for o in delivered)
     commission = sum(o.get("restaurant_commission_amount", 0) for o in delivered)
     fixed = sum(o.get("restaurant_fixed_fee", 0) for o in delivered)
     net = sum(o.get("restaurant_net_payable", 0) for o in delivered)
-    return {"gross_sales": gross, "commission": commission, "fixed_fee": fixed,
-            "net_earning": net, "orders": len(delivered)}
+
+    # ২. যে অর্ডারগুলো ইতোমধ্যে অ্যাডমিন পে বা সেটেল করে দিয়েছেন (Already Paid হিসাবের জন্য)
+    settled_orders = await db.orders.find({
+        "restaurant_id": rest_id, 
+        "status": {"$regex": "^delivered$", "$options": "i"},
+        "is_settled": True  
+    }).to_list(1000)
+
+    already_paid = sum(o.get("restaurant_net_payable", 0) for o in settled_orders)
+
+    return {
+        "gross_sales": gross, 
+        "commission": commission, 
+        "fixed_fee": fixed,
+        "net_earning": net,          # এটিই Pending Payout / Pending Due হিসেবে দেখাবে
+        "orders": len(delivered),
+        "already_paid": already_paid # এটি "Already Paid / Settled" এ দেখাবে
+    }
+
+
 
 
 @router.get("/restaurant/reviews")
@@ -513,14 +593,44 @@ async def delivery_active(user=Depends(require_roles("delivery"))):
     return {"orders": out}
 
 
+# @router.get("/delivery/earnings")
+# async def delivery_earnings(user=Depends(require_roles("delivery"))):
+#     p = await _partner(user)
+#     if not p:
+#         return {"total_earnings": 0, "total_deliveries": 0, "today_earnings": 0,
+#                 "today_deliveries": 0, "history": []}
+#     delivered = await db.orders.find(
+#         {"delivery_partner_id": p["_id"], "status": "DELIVERED"}).to_list(1000)
+#     ds = day_start()
+#     today = [o for o in delivered if o.get("delivered_at") and o["delivered_at"] >= ds]
+#     return {
+#         "total_earnings": sum(o.get("delivery_partner_earning", 0) for o in delivered),
+#         "total_deliveries": len(delivered),
+#         "today_earnings": sum(o.get("delivery_partner_earning", 0) for o in today),
+#         "today_deliveries": len(today),
+#         "history": [{**ser(o), "earning": o.get("delivery_partner_earning", 0)}
+#                     for o in delivered[-50:][::-1]],
+#     }
+
+
+
+
+
+
 @router.get("/delivery/earnings")
 async def delivery_earnings(user=Depends(require_roles("delivery"))):
     p = await _partner(user)
     if not p:
         return {"total_earnings": 0, "total_deliveries": 0, "today_earnings": 0,
                 "today_deliveries": 0, "history": []}
-    delivered = await db.orders.find(
-        {"delivery_partner_id": p["_id"], "status": "DELIVERED"}).to_list(1000)
+    
+    # ডেলিভারির ক্ষেত্রেও পেইড হয়ে যাওয়া অর্ডারগুলো বাদ দেওয়ার জন্য partner_settled চেক করতে হবে
+    delivered = await db.orders.find({
+        "delivery_partner_id": p["_id"], 
+        "status": "DELIVERED",
+        "partner_settled": {"$ne": True}  # পেইড ডেলিভারি বাদ দেওয়ার শর্ত
+    }).to_list(1000)
+    
     ds = day_start()
     today = [o for o in delivered if o.get("delivered_at") and o["delivered_at"] >= ds]
     return {
@@ -531,6 +641,10 @@ async def delivery_earnings(user=Depends(require_roles("delivery"))):
         "history": [{**ser(o), "earning": o.get("delivery_partner_earning", 0)}
                     for o in delivered[-50:][::-1]],
     }
+
+
+
+
 
 
 @router.get("/public/settings")
