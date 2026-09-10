@@ -644,6 +644,47 @@ async def delivery_active(user=Depends(require_roles("delivery"))):
 
 
 
+# @router.get("/delivery/earnings")
+# async def delivery_earnings(user=Depends(require_roles("delivery"))):
+#     p = await _partner(user)
+#     if not p:
+#         return {"total_earnings": 0, "total_deliveries": 0, "today_earnings": 0,
+#                 "today_deliveries": 0, "pending_payout": 0, "history": []}
+
+#     # ১. সব সফল ডেলিভারি (অল-টাইম হিস্ট্রি এবং টোটাল আর্নিংসের জন্য)
+#     all_delivered = await db.orders.find({
+#         "delivery_partner_id": p["_id"], 
+#         "status": {"$regex": "^delivered$", "$options": "i"}
+#     }).to_list(1000)
+
+#     # ২. শুধুমাত্র যেগুলোর পেমেন্ট এখনো দেওয়া হয়নি (Pending Payout এর জন্য)
+#     unsettled_delivered = [
+#         o for o in all_delivered 
+#         if not o.get("partner_settled") or o.get("partner_settled") == False
+#     ]
+
+#     ds = day_start()
+    
+#     # আজকের ডেলিভারিগুলো হিসাব করার জন্য
+#     today_all = [o for o in all_delivered if o.get("delivered_at") and o["delivered_at"] >= ds]
+
+#     return {
+#         "total_earnings": sum(o.get("delivery_partner_earning", 0) for o in all_delivered), # সব মিলিয়ে মোট আর্নিং
+#         "pending_payout": sum(o.get("delivery_partner_earning", 0) for o in unsettled_delivered), # অ্যাডমিন যত টাকা এখনো দেয়নি
+#         "total_deliveries": len(all_delivered),
+#         "today_earnings": sum(o.get("delivery_partner_earning", 0) for o in today_all),
+#         "today_deliveries": len(today_all),
+#         "history": [{**ser(o), "earning": o.get("delivery_partner_earning", 0)}
+#                     for o in all_delivered[-50:][::-1]],
+#     }
+
+
+
+
+
+
+
+
 @router.get("/delivery/earnings")
 async def delivery_earnings(user=Depends(require_roles("delivery"))):
     p = await _partner(user)
@@ -657,11 +698,13 @@ async def delivery_earnings(user=Depends(require_roles("delivery"))):
         "status": {"$regex": "^delivered$", "$options": "i"}
     }).to_list(1000)
 
-    # ২. শুধুমাত্র যেগুলোর পেমেন্ট এখনো দেওয়া হয়নি (Pending Payout এর জন্য)
-    unsettled_delivered = [
-        o for o in all_delivered 
-        if not o.get("partner_settled") or o.get("partner_settled") == False
-    ]
+    # ২. শুধুমাত্র যেগুলোর পেমেন্ট এখনো দেওয়া হয়নি (সব ধরনের পসিবল কেস হ্যান্ডেল করার জন্য)
+    unsettled_delivered = []
+    for o in all_delivered:
+        settled_val = o.get("partner_settled")
+        # যদি partner_settled ফিল্ডটি True বা "true" না হয়, তবেই এটি পেনډিং হিসেবে ধরবে
+        if settled_val not in [True, "True", "true", 1]:
+            unsettled_delivered.append(o)
 
     ds = day_start()
     
@@ -669,16 +712,14 @@ async def delivery_earnings(user=Depends(require_roles("delivery"))):
     today_all = [o for o in all_delivered if o.get("delivered_at") and o["delivered_at"] >= ds]
 
     return {
-        "total_earnings": sum(o.get("delivery_partner_earning", 0) for o in all_delivered), # সব মিলিয়ে মোট আর্নিং
-        "pending_payout": sum(o.get("delivery_partner_earning", 0) for o in unsettled_delivered), # অ্যাডমিন যত টাকা এখনো দেয়নি
+        "total_earnings": sum(o.get("delivery_partner_earning", 0) for o in all_delivered),
+        "pending_payout": sum(o.get("delivery_partner_earning", 0) for o in unsettled_delivered), # এখন ঠিকমতো যোগ হবে
         "total_deliveries": len(all_delivered),
         "today_earnings": sum(o.get("delivery_partner_earning", 0) for o in today_all),
         "today_deliveries": len(today_all),
         "history": [{**ser(o), "earning": o.get("delivery_partner_earning", 0)}
                     for o in all_delivered[-50:][::-1]],
     }
-
-
 
 
 
