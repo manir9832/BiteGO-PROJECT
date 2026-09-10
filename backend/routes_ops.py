@@ -616,110 +616,61 @@ async def delivery_active(user=Depends(require_roles("delivery"))):
 
 
 
+@router.get("/delivery/earnings")
+async def delivery_earnings(user=Depends(require_roles("delivery"))):
+    p = await _partner(user)
+    if not p:
+        return {"total_earnings": 0, "total_deliveries": 0, "today_earnings": 0,
+                "today_deliveries": 0, "pending_payout": 0, "history": []}
 
-# @router.get("/delivery/earnings")
-# async def delivery_earnings(user=Depends(require_roles("delivery"))):
-#     p = await _partner(user)
-#     if not p:
-#         return {"total_earnings": 0, "total_deliveries": 0, "today_earnings": 0,
-#                 "today_deliveries": 0, "history": []}
+    p_id_str = str(p["_id"])
     
-#     # ডেলিভারির ক্ষেত্রেও পেইড হয়ে যাওয়া অর্ডারগুলো বাদ দেওয়ার জন্য partner_settled চেক করতে হবে
-#     delivered = await db.orders.find({
-#         "delivery_partner_id": p["_id"], 
-#         "status": "DELIVERED",
-#         "partner_settled": {"$ne": True}  # পেইড ডেলিভারি বাদ দেওয়ার শর্ত
-#     }).to_list(1000)
+    # ১. সব সফল ডেলিভারি ফেচ করা
+    all_delivered = await db.orders.find({
+        "$or": [
+            {"delivery_boy_id": p["_id"]},
+            {"delivery_boy_id": p_id_str},
+            {"delivery_partner_id": p["_id"]},
+            {"delivery_partner_id": p_id_str}
+        ],
+        "status": {"$regex": "^delivered$", "$options": "i"}
+    }).to_list(1000)
+
+    # ২. সঠিক আর্নিংস বা ডেলিভারি চার্জ ফিল্ড খুঁজে বের করার ফাংশন
+    def get_earning(order):
+        return (
+            order.get("delivery_partner_earning") or 
+            order.get("delivery_charge") or 
+            order.get("earning") or 
+            order.get("partner_earning") or 
+            0
+        )
+
+    # ৩. পেন্ডিং পেআউট হিসাব করার উন্নত ও নিরাপদ লজিক
+    unsettled_delivered = []
+    for o in all_delivered:
+        settled_val = o.get("partner_settled")
+        if settled_val is None:
+            settled_val = o.get("is_settled")
+            
+        # যদি ফিল্ডটি ট্রু (True/1) না হয়, তবেই কেবল এটি পেন্ডিং হিসেবে যোগ হবে
+        if settled_val not in [True, "True", "true", 1, "1"]:
+            unsettled_delivered.append(o)
+
+    ds = day_start()
     
-#     ds = day_start()
-#     today = [o for o in delivered if o.get("delivered_at") and o["delivered_at"] >= ds]
-#     return {
-#         "total_earnings": sum(o.get("delivery_partner_earning", 0) for o in delivered),
-#         "total_deliveries": len(delivered),
-#         "today_earnings": sum(o.get("delivery_partner_earning", 0) for o in today),
-#         "today_deliveries": len(today),
-#         "history": [{**ser(o), "earning": o.get("delivery_partner_earning", 0)}
-#                     for o in delivered[-50:][::-1]],
-#     }
+    # আজকের ডেলিভারিগুলো হিসাব করার জন্য
+    today_all = [o for o in all_delivered if o.get("delivered_at") and o["delivered_at"] >= ds]
 
-
-
-# @router.get("/delivery/earnings")
-# async def delivery_earnings(user=Depends(require_roles("delivery"))):
-#     p = await _partner(user)
-#     if not p:
-#         return {"total_earnings": 0, "total_deliveries": 0, "today_earnings": 0,
-#                 "today_deliveries": 0, "pending_payout": 0, "history": []}
-
-#     # ১. সব সফল ডেলিভারি (অল-টাইম হিস্ট্রি এবং টোটাল আর্নিংসের জন্য)
-#     all_delivered = await db.orders.find({
-#         "delivery_partner_id": p["_id"], 
-#         "status": {"$regex": "^delivered$", "$options": "i"}
-#     }).to_list(1000)
-
-#     # ২. শুধুমাত্র যেগুলোর পেমেন্ট এখনো দেওয়া হয়নি (Pending Payout এর জন্য)
-#     unsettled_delivered = [
-#         o for o in all_delivered 
-#         if not o.get("partner_settled") or o.get("partner_settled") == False
-#     ]
-
-#     ds = day_start()
-    
-#     # আজকের ডেলিভারিগুলো হিসাব করার জন্য
-#     today_all = [o for o in all_delivered if o.get("delivered_at") and o["delivered_at"] >= ds]
-
-#     return {
-#         "total_earnings": sum(o.get("delivery_partner_earning", 0) for o in all_delivered), # সব মিলিয়ে মোট আর্নিং
-#         "pending_payout": sum(o.get("delivery_partner_earning", 0) for o in unsettled_delivered), # অ্যাডমিন যত টাকা এখনো দেয়নি
-#         "total_deliveries": len(all_delivered),
-#         "today_earnings": sum(o.get("delivery_partner_earning", 0) for o in today_all),
-#         "today_deliveries": len(today_all),
-#         "history": [{**ser(o), "earning": o.get("delivery_partner_earning", 0)}
-#                     for o in all_delivered[-50:][::-1]],
-#     }
-
-
-
-
-
-
-
-
-# @router.get("/delivery/earnings")
-# async def delivery_earnings(user=Depends(require_roles("delivery"))):
-#     p = await _partner(user)
-#     if not p:
-#         return {"total_earnings": 0, "total_deliveries": 0, "today_earnings": 0,
-#                 "today_deliveries": 0, "pending_payout": 0, "history": []}
-
-#     # ১. সব সফল ডেলিভারি (অল-টাইম হিস্ট্রি এবং টোটাল আর্নিংসের জন্য)
-#     all_delivered = await db.orders.find({
-#         "delivery_partner_id": p["_id"], 
-#         "status": {"$regex": "^delivered$", "$options": "i"}
-#     }).to_list(1000)
-
-#     # ২. শুধুমাত্র যেগুলোর পেমেন্ট এখনো দেওয়া হয়নি (সব ধরনের পসিবল কেস হ্যান্ডেল করার জন্য)
-#     unsettled_delivered = []
-#     for o in all_delivered:
-#         settled_val = o.get("partner_settled")
-#         # যদি partner_settled ফিল্ডটি True বা "true" না হয়, তবেই এটি পেনډিং হিসেবে ধরবে
-#         if settled_val not in [True, "True", "true", 1]:
-#             unsettled_delivered.append(o)
-
-#     ds = day_start()
-    
-#     # আজকের ডেলিভারিগুলো হিসাব করার জন্য
-#     today_all = [o for o in all_delivered if o.get("delivered_at") and o["delivered_at"] >= ds]
-
-#     return {
-#         "total_earnings": sum(o.get("delivery_partner_earning", 0) for o in all_delivered),
-#         "pending_payout": sum(o.get("delivery_partner_earning", 0) for o in unsettled_delivered), # এখন ঠিকমতো যোগ হবে
-#         "total_deliveries": len(all_delivered),
-#         "today_earnings": sum(o.get("delivery_partner_earning", 0) for o in today_all),
-#         "today_deliveries": len(today_all),
-#         "history": [{**ser(o), "earning": o.get("delivery_partner_earning", 0)}
-#                     for o in all_delivered[-50:][::-1]],
-#     }
+    return {
+        "total_earnings": sum(get_earning(o) for o in all_delivered),
+        "pending_payout": sum(get_earning(o) for o in unsettled_delivered), # এখন ঠিকমতো পেন্ডিং অ্যামাউন্ট দেখাবে
+        "total_deliveries": len(all_delivered),
+        "today_earnings": sum(get_earning(o) for o in today_all),
+        "today_deliveries": len(today_all),
+        "history": [{**ser(o), "earning": get_earning(o)}
+                    for o in all_delivered[-50:][::-1]],
+    }
 
 
 

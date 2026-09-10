@@ -370,23 +370,6 @@ async def toggle_customer(cid: str, admin=Depends(Admin)):
     return {"active": active}
 
 
-# ============================ ORDER MANAGEMENT ===============================
-# @router.get("/orders")
-# async def admin_orders(status: Optional[str] = None, page: int = 1, admin=Depends(Admin)):
-#     query = {}
-#     if status:
-#         query["status"] = status
-#     rows = await db.orders.find(query).sort("created_at", -1) \
-#         .skip((page - 1) * 30).limit(30).to_list(30)
-#     return {"orders": ser(rows)}
-
-
-# @router.get("/orders/{order_id}")
-# async def admin_order_detail(order_id: str, admin=Depends(Admin)):
-#     o = await db.orders.find_one({"_id": oid(order_id)})
-#     if not o:
-#         raise HTTPException(404, "Order not found")
-#     return {"order": ser(o)}
 
 
 
@@ -394,9 +377,7 @@ async def toggle_customer(cid: str, admin=Depends(Admin)):
 
 
 
-
-
-
+# ======================== ORDERS MANAGEMENT ================================
 
 
 @router.get("/orders")
