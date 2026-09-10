@@ -617,31 +617,66 @@ async def delivery_active(user=Depends(require_roles("delivery"))):
 
 
 
+# @router.get("/delivery/earnings")
+# async def delivery_earnings(user=Depends(require_roles("delivery"))):
+#     p = await _partner(user)
+#     if not p:
+#         return {"total_earnings": 0, "total_deliveries": 0, "today_earnings": 0,
+#                 "today_deliveries": 0, "history": []}
+    
+#     # ডেলিভারির ক্ষেত্রেও পেইড হয়ে যাওয়া অর্ডারগুলো বাদ দেওয়ার জন্য partner_settled চেক করতে হবে
+#     delivered = await db.orders.find({
+#         "delivery_partner_id": p["_id"], 
+#         "status": "DELIVERED",
+#         "partner_settled": {"$ne": True}  # পেইড ডেলিভারি বাদ দেওয়ার শর্ত
+#     }).to_list(1000)
+    
+#     ds = day_start()
+#     today = [o for o in delivered if o.get("delivered_at") and o["delivered_at"] >= ds]
+#     return {
+#         "total_earnings": sum(o.get("delivery_partner_earning", 0) for o in delivered),
+#         "total_deliveries": len(delivered),
+#         "today_earnings": sum(o.get("delivery_partner_earning", 0) for o in today),
+#         "today_deliveries": len(today),
+#         "history": [{**ser(o), "earning": o.get("delivery_partner_earning", 0)}
+#                     for o in delivered[-50:][::-1]],
+#     }
+
+
+
 @router.get("/delivery/earnings")
 async def delivery_earnings(user=Depends(require_roles("delivery"))):
     p = await _partner(user)
     if not p:
         return {"total_earnings": 0, "total_deliveries": 0, "today_earnings": 0,
-                "today_deliveries": 0, "history": []}
-    
-    # ডেলিভারির ক্ষেত্রেও পেইড হয়ে যাওয়া অর্ডারগুলো বাদ দেওয়ার জন্য partner_settled চেক করতে হবে
-    delivered = await db.orders.find({
-        "delivery_partner_id": p["_id"], 
-        "status": "DELIVERED",
-        "partner_settled": {"$ne": True}  # পেইড ডেলিভারি বাদ দেওয়ার শর্ত
-    }).to_list(1000)
-    
-    ds = day_start()
-    today = [o for o in delivered if o.get("delivered_at") and o["delivered_at"] >= ds]
-    return {
-        "total_earnings": sum(o.get("delivery_partner_earning", 0) for o in delivered),
-        "total_deliveries": len(delivered),
-        "today_earnings": sum(o.get("delivery_partner_earning", 0) for o in today),
-        "today_deliveries": len(today),
-        "history": [{**ser(o), "earning": o.get("delivery_partner_earning", 0)}
-                    for o in delivered[-50:][::-1]],
-    }
+                "today_deliveries": 0, "pending_payout": 0, "history": []}
 
+    # ১. সব সফল ডেলিভারি (অল-টাইম হিস্ট্রি এবং টোটাল আর্নিংসের জন্য)
+    all_delivered = await db.orders.find({
+        "delivery_partner_id": p["_id"], 
+        "status": {"$regex": "^delivered$", "$options": "i"}
+    }).to_list(1000)
+
+    # ২. শুধুমাত্র যেগুলোর পেমেন্ট এখনো দেওয়া হয়নি (Pending Payout এর জন্য)
+    unsettled_delivered = [
+        o for o in all_delivered 
+        if not o.get("partner_settled") or o.get("partner_settled") == False
+    ]
+
+    ds = day_start()
+    
+    # আজকের ডেলিভারিগুলো হিসাব করার জন্য
+    today_all = [o for o in all_delivered if o.get("delivered_at") and o["delivered_at"] >= ds]
+
+    return {
+        "total_earnings": sum(o.get("delivery_partner_earning", 0) for o in all_delivered), # সব মিলিয়ে মোট আর্নিং
+        "pending_payout": sum(o.get("delivery_partner_earning", 0) for o in unsettled_delivered), # অ্যাডমিন যত টাকা এখনো দেয়নি
+        "total_deliveries": len(all_delivered),
+        "today_earnings": sum(o.get("delivery_partner_earning", 0) for o in today_all),
+        "today_deliveries": len(today_all),
+        "history": [{**ser(o), "earning": o.get("delivery_partner_earning", 0)}
+                    for o in all_delivered[-50:][::-1]],
+    }
 
 
 
