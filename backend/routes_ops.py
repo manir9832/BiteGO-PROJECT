@@ -323,30 +323,65 @@ async def delete_food(food_id: str, user=Depends(require_roles("restaurant"))):
 
 
 
-
 @router.get("/restaurant/earnings")
 async def restaurant_earnings(user=Depends(require_roles("restaurant"))):
     r = await _my_restaurant(user)
     _ensure_approved(r)
     rid = r["_id"]
+    rid_str = str(rid)
     
-    # ডেলিভারি হওয়া অর্ডারগুলো ফেচ করা
-    delivered_orders = await db.orders.find(
-        {"restaurant_id": rid, "status": "DELIVERED"}
-    ).to_list(10000)
+    # ১. সব সফল (DELIVERED) অর্ডার ফেচ করা
+    all_delivered = await db.orders.find({
+        "restaurant_id": {"$in": [rid, rid_str]},
+        "status": {"$regex": "^delivered$", "$options": "i"}
+    }).to_list(10000)
+
+    def get_net_payable(order):
+        return (
+            order.get("restaurant_net_payable") or 
+            order.get("net_payable") or 
+            0
+        )
+
+    def get_gross(order):
+        return order.get("food_subtotal") or order.get("gross_sales") or 0
+
+    def get_commission(order):
+        return order.get("restaurant_commission") or order.get("commission") or 0
+
+    def get_fixed_fee(order):
+        return order.get("restaurant_fixed_fee") or order.get("fixed_fee") or 0
+
+    # ২. পেন্ডিং পেআউট হিসাব: যে অর্ডারগুলোর টাকা এখনো অ্যাডমিন সেটেল করেনি
+    unsettled_orders = []
+    for o in all_delivered:
+        settled_val = o.get("restaurant_settled")
+        if settled_val is None:
+            settled_val = o.get("is_settled")
+            
+        # যদি ভ্যালু True বা 1 না হয়, তবেই এটি পেন্ডিং ব্যালেন্সে যোগ হবে
+        if settled_val not in [True, "True", "true", 1, "1"]:
+            unsettled_orders.append(o)
+
+    ds = day_start()
+    today_all = [o for o in all_delivered if o.get("delivered_at") and o.get("delivered_at") >= ds]
+
+    gross_total = sum(get_gross(o) for o in all_delivered)
+    commission_total = sum(get_commission(o) for o in all_delivered)
+    fixed_fee_total = sum(get_fixed_fee(o) for o in all_delivered)
     
-    gross = sum(o.get("food_subtotal", 0) for o in delivered_orders)
-    commission = sum(o.get("restaurant_commission", 0) for o in delivered_orders)
-    fixed_fee = sum(o.get("restaurant_fixed_fee", 0) for o in delivered_orders)
-    net = sum(o.get("restaurant_net_payable", 0) for o in delivered_orders)
-    
+    # টোটাল পেইড বা সেটেল হয়ে যাওয়া অ্যামাউন্ট হিসাব করা
+    total_paid = sum(get_net_payable(o) for o in all_delivered if o not in unsettled_orders)
+
     return {
-        "gross_sales": gross,
-        "commission": commission,
-        "fixed_fee": fixed_fee,
-        "net_earning": net,
-        "orders": len(delivered_orders),
-        "paid_amount": 0
+        "gross_sales": gross_total,
+        "commission": commission_total,
+        "fixed_fee": fixed_fee_total,
+        "net_earning": sum(get_net_payable(o) for o in unsettled_orders),  # রেস্টুরেন্ট অ্যাপের পেন্ডিং ডিউ
+        "orders": len(all_delivered),
+        "paid_amount": total_paid,
+        "today_orders": len(today_all),
+        "today_sales": sum(get_gross(o) for o in today_all)
     }
 
 
