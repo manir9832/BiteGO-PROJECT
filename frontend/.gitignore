@@ -38,3 +38,11 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# Firebase
+google-services.json
+
+# Generated project files
+backend/.emergent/
+backend/memory/
+backend/test_reports/

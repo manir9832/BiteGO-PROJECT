@@ -26,7 +26,7 @@
 //   const [desc, setDesc] = useState("");
 //   const [price, setPrice] = useState("");
 //   const [category, setCategory] = useState("");
-//   const [image, setImage] = useState("");
+//   const [image, setImage] = useState<any>("");
 //   const [veg, setVeg] = useState(false);
 //   const [saving, setSaving] = useState(false);
 
@@ -62,13 +62,7 @@
 //   );
 
 //   const handleImageChange = (val: any) => {
-//     if (typeof val === "object" && val !== null) {
-//       setImage(val.url || val.path || "");
-//     } else if (typeof val === "string") {
-//       setImage(val);
-//     } else {
-//       setImage("");
-//     }
+//     setImage(val);
 //   };
 
 //   const save = async () => {
@@ -79,12 +73,22 @@
 //     }
     
 //     setSaving(true);
+    
+//     // ইমেজের সঠিক স্ট্রিং বা অবজেক্ট এক্সট্রাক্ট করা
+//     let finalImage = "";
+//     if (typeof image === "string") {
+//       finalImage = image.trim();
+//     } else if (image && typeof image === "object") {
+//       finalImage = image.uri || image.url || image.path || "";
+//     }
+
+//     // JSON বডি হিসেবে পাঠানো যাতে FormData রিলেটেড কোনো এরর না আসে
 //     const body = { 
 //       name: name.trim(), 
 //       description: desc.trim(), 
 //       price: p, 
 //       category: category.trim(), 
-//       image: image.trim() || undefined, 
+//       image: finalImage ? finalImage : undefined, 
 //       veg, 
 //       available: true 
 //     };
@@ -181,9 +185,6 @@
 
 
 
-
-
-
 import { useCallback, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
@@ -209,6 +210,7 @@ export default function MenuEdit() {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [price, setPrice] = useState("");
+  const [discountPrice, setDiscountPrice] = useState("");
   const [category, setCategory] = useState("");
   const [image, setImage] = useState<any>("");
   const [veg, setVeg] = useState(false);
@@ -220,6 +222,7 @@ export default function MenuEdit() {
         setName("");
         setDesc("");
         setPrice("");
+        setDiscountPrice("");
         setCategory("");
         setImage("");
         setVeg(false);
@@ -234,6 +237,7 @@ export default function MenuEdit() {
             setName(f.name || ""); 
             setDesc(f.description || ""); 
             setPrice(String(f.price || "")); 
+            setDiscountPrice(f.discount_price !== null && f.discount_price !== undefined ? String(f.discount_price) : ""); 
             setCategory(f.category || ""); 
             setImage(f.image || ""); 
             setVeg(!!f.veg); 
@@ -251,14 +255,25 @@ export default function MenuEdit() {
 
   const save = async () => {
     const p = parseInt(price, 10);
+    const dp = discountPrice.trim() ? parseInt(discountPrice, 10) : null;
+
     if (name.trim().length < 2 || !category.trim() || isNaN(p) || p < 0) { 
       toast.show("Fill name, price and category", "error"); 
       return; 
     }
+
+    if (dp !== null && (isNaN(dp) || dp < 0)) {
+      toast.show("Invalid discount price", "error");
+      return;
+    }
+
+    if (dp !== null && dp >= p) {
+      toast.show("Discount price must be less than regular price", "error");
+      return;
+    }
     
     setSaving(true);
     
-    // ইমেজের সঠিক স্ট্রিং বা অবজেক্ট এক্সট্রাক্ট করা
     let finalImage = "";
     if (typeof image === "string") {
       finalImage = image.trim();
@@ -266,11 +281,11 @@ export default function MenuEdit() {
       finalImage = image.uri || image.url || image.path || "";
     }
 
-    // JSON বডি হিসেবে পাঠানো যাতে FormData রিলেটেড কোনো এরর না আসে
     const body = { 
       name: name.trim(), 
       description: desc.trim(), 
       price: p, 
+      discount_price: dp,
       category: category.trim(), 
       image: finalImage ? finalImage : undefined, 
       veg, 
@@ -303,6 +318,7 @@ export default function MenuEdit() {
         <L t="DESCRIPTION" />
         <TextInput value={desc} onChangeText={setDesc} placeholder="Short description" placeholderTextColor={C.muted} style={inp} />
         
+        {/* দাম এবং ক্যাটাগরি পাশাপাশি সুন্দরভাবে সাজানো */}
         <View style={{ flexDirection: "row", gap: S.md }}>
           <View style={{ flex: 1 }}>
             <L t="PRICE (₹)" />
@@ -313,6 +329,10 @@ export default function MenuEdit() {
             <TextInput testID="food-category" value={category} onChangeText={setCategory} placeholder="Biryani" placeholderTextColor={C.muted} style={inp} />
           </View>
         </View>
+
+        {/* ডিসকাউন্ট প্রাইস অপশনাল ফিল্ড */}
+        <L t="DISCOUNT PRICE (₹) - Optional" />
+        <TextInput testID="food-discount-price" value={discountPrice} onChangeText={setDiscountPrice} keyboardType="number-pad" placeholder="e.g. 70" placeholderTextColor={C.muted} style={inp} />
         
         <View style={{ marginTop: S.md }}>
           <ImageUpload 

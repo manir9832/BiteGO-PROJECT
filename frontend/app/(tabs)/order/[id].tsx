@@ -1,4 +1,5 @@
 
+
 // // Cross-platform map (native implementation via react-native-maps).
 // // Metro serves AppMap.web.tsx on web automatically.
 // import { useCallback, useEffect, useRef, useState } from "react";
@@ -30,8 +31,10 @@
 //   const load = useCallback(async () => {
 //     try { 
 //       const r = await api.get(`/orders/${id}`); 
-//       setO(r.order); 
-//     } catch {} finally { 
+//       setO(r.order || null); 
+//     } catch (e) {
+//       console.log("Error loading order:", e);
+//     } finally { 
 //       setLoading(false); 
 //     }
 //   }, [id]);
@@ -46,9 +49,12 @@
 //   if (!o) return <View style={styles.root}><Loading label="Loading order" /></View>;
 
 //   const cancelled = o.status === "CANCELLED" || o.status === "REJECTED";
-//   const curIdx = TRACK_STEPS.indexOf(o.status);
+//   const curIdx = TRACK_STEPS.includes(o.status) ? TRACK_STEPS.indexOf(o.status) : 0;
+  
 //   const timelineMap: Record<string, string> = {};
-//   (o.timeline || []).forEach((t: any) => { if (!timelineMap[t.status]) timelineMap[t.status] = t.at; });
+//   if (Array.isArray(o.timeline)) {
+//     o.timeline.forEach((t: any) => { if (t && t.status && !timelineMap[t.status]) timelineMap[t.status] = t.at; });
+//   }
 
 //   const cancel = async () => {
 //     try { 
@@ -56,7 +62,7 @@
 //       setO(r.order); 
 //       toast.show("Order cancelled", "success"); 
 //     } catch (e: any) { 
-//       toast.show(e.message, "error"); 
+//       toast.show(e?.message || "Failed to cancel", "error"); 
 //     }
 //   };
 
@@ -67,7 +73,7 @@
 //       toast.show("Thanks for your feedback!", "success");
 //       load();
 //     } catch (e: any) { 
-//       toast.show(e.message, "error"); 
+//       toast.show(e?.message || "Failed to submit review", "error"); 
 //     } finally { 
 //       setSubmitting(false); 
 //     }
@@ -95,8 +101,8 @@
 
 //       <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: insets.bottom + S.xl }} showsVerticalScrollIndicator={false}>
 //         <View style={styles.statusHead}>
-//           <Txt weight="semibold" size={T["2xl"]}>{ORDER_STATUS_LABELS[o.status]}</Txt>
-//           <Txt color={C.muted} style={{ marginTop: 2 }}>{o.restaurant_name} · #{o.id ? o.id.slice(-6).toUpperCase() : ""}</Txt>
+//           <Txt weight="semibold" size={T["2xl"]}>{ORDER_STATUS_LABELS[o.status] || o.status}</Txt>
+//           <Txt color={C.muted} style={{ marginTop: 2 }}>{o.restaurant_name || "Restaurant"} · #{o.id ? o.id.slice(-6).toUpperCase() : ""}</Txt>
 //         </View>
 
 //         {/* Safe Map rendering check to prevent crashes */}
@@ -105,7 +111,7 @@
 //             <AppMap
 //               style={{ height: 220 }}
 //               markers={[
-//                 { lat: o.restaurant_lat, lng: o.restaurant_lng, title: o.restaurant_name, color: C.brandPrimary },
+//                 { lat: o.restaurant_lat, lng: o.restaurant_lng, title: o.restaurant_name || "Restaurant", color: C.brandPrimary },
 //                 { lat: o.address.lat, lng: o.address.lng, title: "Delivery address", color: "red" },
 //                 ...(o.partner_location ? [{ lat: o.partner_location.lat, lng: o.partner_location.lng, title: o.delivery_partner_name || "Partner", color: "green" as const }] : []),
 //               ]}
@@ -133,7 +139,7 @@
 //                     {i < TRACK_STEPS.length - 1 && <View style={[styles.tLine, i < curIdx && styles.tLineDone]} />}
 //                   </View>
 //                   <View style={{ flex: 1, paddingBottom: S.lg }}>
-//                     <Txt weight={isCur ? "semibold" : "medium"} color={done ? C.onSurface : C.muted}>{ORDER_STATUS_LABELS[step]}</Txt>
+//                     <Txt weight={isCur ? "semibold" : "medium"} color={done ? C.onSurface : C.muted}>{ORDER_STATUS_LABELS[step] || step}</Txt>
 //                     {timelineMap[step] && <Txt size={T.sm} color={C.muted}>{fmtDateTime(timelineMap[step])}</Txt>}
 //                   </View>
 //                 </View>
@@ -181,20 +187,20 @@
 //           {(o.items || []).map((it: any, i: number) => (
 //             <View key={i} style={styles.invRow}>
 //               <Txt style={{ flex: 1 }} numberOfLines={1}>{it.quantity}× {it.name}</Txt>
-//               <Txt weight="medium">{money(it.price * it.quantity)}</Txt>
+//               <Txt weight="medium">{money((it.price || 0) * (it.quantity || 1))}</Txt>
 //             </View>
 //           ))}
 //           <View style={styles.invDivider} />
-//           <InvRow label="Item Total" value={money(o.food_subtotal)} />
-//           <InvRow label="Platform Charge" value={money(o.platform_charge)} />
-//           <InvRow label="Delivery Charge" value={money(o.customer_delivery_charge)} />
+//           <InvRow label="Item Total" value={money(o.food_subtotal || 0)} />
+//           <InvRow label="Platform Charge" value={money(o.platform_charge || 0)} />
+//           <InvRow label="Delivery Charge" value={money(o.customer_delivery_charge || 0)} />
 //           <View style={[styles.invRow, styles.invTotal]}>
-//             <Txt weight="semibold" size={T.lg}>Total ({o.payment_method})</Txt>
-//             <Txt weight="semibold" size={T.lg}>{money(o.customer_total)}</Txt>
+//             <Txt weight="semibold" size={T.lg}>Total ({o.payment_method || "COD"})</Txt>
+//             <Txt weight="semibold" size={T.lg}>{money(o.customer_total || 0)}</Txt>
 //           </View>
 //           <View style={styles.invAddr}>
 //             <Ionicons name="location-outline" size={16} color={C.muted} />
-//             <Txt size={T.sm} color={C.muted} style={{ flex: 1 }}>{o.address?.label} · {o.address?.line}</Txt>
+//             <Txt size={T.sm} color={C.muted} style={{ flex: 1 }}>{o.address?.label || "Address"} · {o.address?.line || ""}</Txt>
 //           </View>
 //         </View>
 //       </ScrollView>
@@ -236,7 +242,12 @@
 //   invDivider: { height: 1, backgroundColor: C.divider, marginVertical: S.sm },
 //   invTotal: { marginTop: S.sm, paddingTop: S.md, borderTopWidth: 1, borderTopColor: C.divider },
 //   invAddr: { flexDirection: "row", gap: S.sm, marginTop: S.md, paddingTop: S.md, borderTopWidth: 1, borderTopColor: C.divider },
-// };
+// });
+
+
+
+
+
 
 
 
@@ -450,12 +461,34 @@ export default function OrderDetail() {
             <Txt weight="semibold" color={C.brandPrimary}>BiteGo</Txt>
             <Txt size={T.sm} color={C.muted}>{fmtDateTime(o.created_at)}</Txt>
           </View>
-          {(o.items || []).map((it: any, i: number) => (
-            <View key={i} style={styles.invRow}>
-              <Txt style={{ flex: 1 }} numberOfLines={1}>{it.quantity}× {it.name}</Txt>
-              <Txt weight="medium">{money((it.price || 0) * (it.quantity || 1))}</Txt>
-            </View>
-          ))}
+          {(o.items || []).map((it: any, i: number) => {
+            const hasDiscount = it.discount_price != null && it.discount_price < it.price;
+            const effectivePrice = hasDiscount ? it.discount_price : (it.price || 0);
+
+            return (
+              <View key={i} style={styles.invRow}>
+                <View style={{ flex: 1 }}>
+                  <Txt numberOfLines={1}>{it.quantity}× {it.name}</Txt>
+                </View>
+                <View style={{ alignItems: "flex-end" }}>
+                  {hasDiscount ? (
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                      <Txt size={T.sm} color={C.muted} style={{ textDecorationLine: "line-through" }}>
+                        {money((it.price || 0) * (it.quantity || 1))}
+                      </Txt>
+                      <Txt weight="medium">
+                        {money(effectivePrice * (it.quantity || 1))}
+                      </Txt>
+                    </View>
+                  ) : (
+                    <Txt weight="medium">
+                      {money(effectivePrice * (it.quantity || 1))}
+                    </Txt>
+                  )}
+                </View>
+              </View>
+            );
+          })}
           <View style={styles.invDivider} />
           <InvRow label="Item Total" value={money(o.food_subtotal || 0)} />
           <InvRow label="Platform Charge" value={money(o.platform_charge || 0)} />
@@ -509,6 +542,3 @@ const styles = StyleSheet.create({
   invTotal: { marginTop: S.sm, paddingTop: S.md, borderTopWidth: 1, borderTopColor: C.divider },
   invAddr: { flexDirection: "row", gap: S.sm, marginTop: S.md, paddingTop: S.md, borderTopWidth: 1, borderTopColor: C.divider },
 });
-
-
-

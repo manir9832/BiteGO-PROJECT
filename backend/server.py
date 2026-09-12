@@ -621,7 +621,7 @@ async def create_order(body: CreateOrder, user=Depends(require_roles("customer")
     res = await db.orders.insert_one(order)
     saved = await db.orders.find_one({"_id": res.inserted_id})
     await notify(restaurant["owner_id"], "New order received!",
-                 f"Order for ₹{totals['customer_total']} — accept within 20 min.",
+                 f"Order for ₹{totals['customer_total']} — accept within 10 min.",
                  type_="new_order", data={"order_id": str(res.inserted_id)})
     await notify(user["_id"], "Order placed",
                  f"Your order at {restaurant['name']} was placed.")

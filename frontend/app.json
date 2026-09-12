@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "KhauGo",
-    "slug": "KhauGo",
+    "name": "BiteGo",
+    "slug": "BiteGo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,11 +20,17 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.emergent.bitegodelivery.abr9pa",
+      "googleServicesFile": "./google-services.json",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyBfRgu9SAyaRSO5hjyqQKZea9rM5pTURC4"
         }
-      }
+      },
+      "permissions": [
+        "NOTIFICATIONS",
+        "WAKE_LOCK",
+        "VIBRATE"
+      ]
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
@@ -34,6 +40,16 @@
         "react-native-maps",
         {
           "googleMapsApiKey": "AIzaSyBfRgu9SAyaRSO5hjyqQKZea9rM5pTURC4"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/adaptive-icon.png",
+          "color": "#ffffff",
+          "sounds": [],
+          "androidMode": "default",
+          "androidCollapsedTitle": "BiteGo"
         }
       ]
     ],
