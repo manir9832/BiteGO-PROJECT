@@ -843,6 +843,20 @@ async def public_settings():
     return {"helpline": s.get("helpline"), "ordering_enabled": s.get("ordering_enabled")}
 
 
+@api.get("/banners")
+async def public_banners():
+    """Return active banners for the Customer app."""
+    rows = await db.banners.find(
+        {"active": True}
+    ).sort(
+        "order", 1
+    ).to_list(20)
+
+    return {
+        "banners": ser(rows)
+    }
+
+
 class RouteQuery(BaseModel):
     o_lat: float
     o_lng: float

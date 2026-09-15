@@ -825,6 +825,135 @@ async def delete_category(cid: str, admin=Depends(Admin)):
     return {"ok": True}
 
 
+
+
+
+
+
+# ============================ BANNERS =========================================
+
+class Banner(BaseModel):
+    title: str = ""
+    image: str
+    order: int = 0
+    active: bool = True
+
+
+@router.get("/banners")
+async def admin_banners(admin=Depends(Admin)):
+    """Admin panel থেকে সব banner দেখা যাবে."""
+    rows = await db.banners.find({}).sort("order", 1).to_list(100)
+
+    return {
+        "banners": ser(rows)
+    }
+
+
+@router.post("/banners")
+async def create_banner(body: Banner, admin=Depends(Admin)):
+    """নতুন promotional banner তৈরি করবে."""
+
+    doc = {
+        "title": body.title,
+        "image": body.image,
+        "order": body.order,
+        "active": body.active,
+        "created_at": now(),
+        "updated_at": now(),
+    }
+
+    result = await db.banners.insert_one(doc)
+
+    await audit(
+        admin,
+        "create_banner",
+        target=str(result.inserted_id),
+    )
+
+    return {
+        "banner": ser(
+            await db.banners.find_one({"_id": result.inserted_id})
+        )
+    }
+
+
+@router.put("/banners/{banner_id}")
+async def update_banner(
+    banner_id: str,
+    body: Banner,
+    admin=Depends(Admin)
+):
+    """Existing banner update করবে."""
+
+    try:
+        banner_oid = oid(banner_id)
+    except Exception:
+        raise HTTPException(400, "Invalid banner ID")
+
+    existing = await db.banners.find_one({
+        "_id": banner_oid
+    })
+
+    if not existing:
+        raise HTTPException(404, "Banner not found")
+
+    upd = {
+        "title": body.title,
+        "image": body.image,
+        "order": body.order,
+        "active": body.active,
+        "updated_at": now(),
+    }
+
+    await db.banners.update_one(
+        {"_id": banner_oid},
+        {"$set": upd}
+    )
+
+    await audit(
+        admin,
+        "update_banner",
+        target=banner_id,
+    )
+
+    return {
+        "banner": ser(
+            await db.banners.find_one({"_id": banner_oid})
+        )
+    }
+
+
+@router.delete("/banners/{banner_id}")
+async def delete_banner(
+    banner_id: str,
+    admin=Depends(Admin)
+):
+    """Banner delete করবে."""
+
+    try:
+        banner_oid = oid(banner_id)
+    except Exception:
+        raise HTTPException(400, "Invalid banner ID")
+
+    result = await db.banners.delete_one({
+        "_id": banner_oid
+    })
+
+    if result.deleted_count == 0:
+        raise HTTPException(404, "Banner not found")
+
+    await audit(
+        admin,
+        "delete_banner",
+        target=banner_id,
+    )
+
+    return {
+        "ok": True,
+        "message": "Banner deleted successfully"
+    }
+
+
 # ============================ REVIEWS ========================================
 @router.get("/reviews")
 async def admin_reviews(admin=Depends(Admin)):
