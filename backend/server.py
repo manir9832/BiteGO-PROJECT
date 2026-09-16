@@ -228,9 +228,9 @@ async def otp_request(body: OtpRequest):
     })
 
     # ==================== RENFLAIR OTP ====================
-if config.SMS_PROVIDER == "renflair":
+    if config.SMS_PROVIDER == "renflair":
 
-    if not config.RENFLAIR_API_KEY:
+     if not config.RENFLAIR_API_KEY:
         raise HTTPException(
             500,
             "Renflair API key is not configured"
