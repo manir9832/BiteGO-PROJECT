@@ -28,7 +28,7 @@ OTP_LENGTH = 6
 ENV = os.getenv("ENV", "development")
 IS_DEV = ENV == "development"
 SMS_PROVIDER = os.getenv("SMS_PROVIDER", "dev")
-# RENFLAIR_API_KEY = os.getenv("RENFLAIR_API_KEY", "")
+RENFLAIR_API_KEY = os.getenv("RENFLAIR_API_KEY", "")
 
 FIRST_ADMIN_EMAIL = os.getenv("FIRST_ADMIN_EMAIL")
 FIRST_ADMIN_PASSWORD = os.getenv("FIRST_ADMIN_PASSWORD")
