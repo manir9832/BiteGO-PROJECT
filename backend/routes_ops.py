@@ -760,6 +760,7 @@ async def save_push_token(body: PushTokenBody, user=Depends(current_user)):
         {"_id": user["_id"]}, 
         {"$set": {"push_token": body.push_token}}
     )
+    print(f"[PUSH TOKEN DEBUG] user={user['_id']} token={body.push_token}")
     return {"ok": True}
 
 
