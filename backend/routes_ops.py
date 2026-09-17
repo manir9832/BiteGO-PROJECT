@@ -979,13 +979,31 @@ async def ready_order(order_id: str, user=Depends(require_roles("restaurant"))):
 
     # Notify eligible ONLINE delivery partners.
     # Only approved partners in the same service area receive the request.
+   
+    # partner_query = {
+    #     "status": "approved",
+    #     "online": True,
+    # }
+
+    # if updated.get("service_area_id"):
+    #     partner_query["service_area_id"] = updated["service_area_id"]
+
+
     partner_query = {
-        "status": "approved",
-        "online": True,
+    "status": "approved",
+    "online": True,
     }
 
-    if updated.get("service_area_id"):
-        partner_query["service_area_id"] = updated["service_area_id"]
+    order_area_id = updated.get("service_area_id")
+
+    if order_area_id:
+     partner_query["$or"] = [
+        {"service_area_id": order_area_id},
+        {"service_area_id": None},
+    ]
+
+       
+
 
     partners = await db.delivery_partners.find(
         partner_query
