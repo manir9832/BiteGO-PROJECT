@@ -390,7 +390,7 @@ async def logout(body: RefreshBody):
             {"_id": session["user_id"]},
             {"$unset": {"push_token": ""}}
         )
-
+        print(f"[LOGOUT PUSH DEBUG] push_token cleared for user={session['user_id']}")
     return {"ok": True}
 
 
