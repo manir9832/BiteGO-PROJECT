@@ -101,7 +101,7 @@ async def notify(user_id, title, body, type_="order", data=None):
 
     # 2. Find user's Expo Push Token
     user = await db.users.find_one({"_id": u_id})
-
+    print(f"[PUSH USER DEBUG] user={user}")
     if not user:
         print(f"[PUSH] User not found: {u_id}")
         return
