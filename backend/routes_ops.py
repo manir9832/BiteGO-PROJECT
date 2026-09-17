@@ -756,6 +756,7 @@ class PushTokenBody(BaseModel):
 
 @router.post("/users/push-token")
 async def save_push_token(body: PushTokenBody, user=Depends(current_user)):
+    print(f"[PUSH DB DEBUG] db={db.name} user_id={user['_id']}")
     await db.users.update_one(
         {"_id": user["_id"]}, 
         {"$set": {"push_token": body.push_token}}
