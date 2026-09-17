@@ -227,82 +227,82 @@ async def otp_request(body: OtpRequest):
         "attempts": 0, "consumed": False, "created_at": now(),
     })
 
-    # ==================== RENFLAIR OTP ====================
-    if config.SMS_PROVIDER == "renflair":
+    # # ==================== RENFLAIR OTP ====================
+    # if config.SMS_PROVIDER == "renflair":
 
-     if not config.RENFLAIR_API_KEY:
-        raise HTTPException(
-            500,
-            "Renflair API key is not configured"
-        )
+    #  if not config.RENFLAIR_API_KEY:
+    #     raise HTTPException(
+    #         500,
+    #         "Renflair API key is not configured"
+    #     )
 
-    try:
-        url = "https://sms.renflair.in/V1.php"
+    # try:
+    #     url = "https://sms.renflair.in/V1.php"
 
-        params = {
-            "API": config.RENFLAIR_API_KEY,
-            "PHONE": phone,
-            "OTP": otp,
-        }
+    #     params = {
+    #         "API": config.RENFLAIR_API_KEY,
+    #         "PHONE": phone,
+    #         "OTP": otp,
+    #     }
 
-        async with httpx.AsyncClient(timeout=15.0) as client_http:
-            response = await client_http.get(
-                url,
-                params=params
-            )
+    #     async with httpx.AsyncClient(timeout=15.0) as client_http:
+    #         response = await client_http.get(
+    #             url,
+    #             params=params
+    #         )
 
-        if response.is_error:
-            logger.error(
-                "Renflair OTP failed: status=%s body=%s",
-                response.status_code,
-                response.text[:500]
-            )
+    #     if response.is_error:
+    #         logger.error(
+    #             "Renflair OTP failed: status=%s body=%s",
+    #             response.status_code,
+    #             response.text[:500]
+    #         )
 
-            await db.otp_challenges.update_one(
-                {
-                    "phone": phone,
-                    "role": role,
-                    "consumed": False
-                },
-                {
-                    "$set": {"consumed": True}
-                }
-            )
+    #         await db.otp_challenges.update_one(
+    #             {
+    #                 "phone": phone,
+    #                 "role": role,
+    #                 "consumed": False
+    #             },
+    #             {
+    #                 "$set": {"consumed": True}
+    #             }
+    #         )
 
-            raise HTTPException(
-                502,
-                "Unable to send OTP SMS. Please try again."
-            )
+    #         raise HTTPException(
+    #             502,
+    #             "Unable to send OTP SMS. Please try again."
+    #         )
 
-        logger.info(
-            "Renflair OTP request sent successfully to phone ending %s",
-            phone[-4:]
-        )
+    #     logger.info(
+    #         "Renflair OTP request sent successfully to phone ending %s",
+    #         phone[-4:]
+    #     )
 
-    except HTTPException:
-        raise
+    # except HTTPException:
+    #     raise
 
-    except Exception as e:
-        logger.error(
-            "Renflair OTP error: %s",
-            e
-        )
+    # except Exception as e:
+    #     logger.error(
+    #         "Renflair OTP error: %s",
+    #         e
+    #     )
 
-        await db.otp_challenges.update_one(
-            {
-                "phone": phone,
-                "role": role,
-                "consumed": False
-            },
-            {
-                "$set": {"consumed": True}
-            }
-        )
+    #     await db.otp_challenges.update_one(
+    #         {
+    #             "phone": phone,
+    #             "role": role,
+    #             "consumed": False
+    #         },
+    #         {
+    #             "$set": {"consumed": True}
+    #         }
+    #     )
 
-        raise HTTPException(
-            502,
-            "Unable to send OTP SMS. Please try again."
-        )
+    #     raise HTTPException(
+    #         502,
+    #         "Unable to send OTP SMS. Please try again."
+    #     )
 
 
 
