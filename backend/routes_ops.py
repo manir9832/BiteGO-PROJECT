@@ -1009,6 +1009,10 @@ async def ready_order(order_id: str, user=Depends(require_roles("restaurant"))):
         partner_query
     ).to_list(100)
 
+    print(f"[PUSH DEBUG] partner_query = {partner_query}")
+    print(f"[PUSH DEBUG] partners_found = {len(partners)}")
+    print(f"[PUSH DEBUG] partners = {partners}")
+
     for partner in partners:
         partner_user_id = partner.get("user_id")
 
