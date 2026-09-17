@@ -9,7 +9,7 @@ import { C, R, S, T } from "@/src/theme";
 const OPTIONS = [
   { role: "restaurant", icon: "restaurant", title: "Restaurant Partner", sub: "Manage orders, menu & earnings", route: "/(auth)/login?role=restaurant" },
   { role: "delivery", icon: "bicycle", title: "Delivery Partner", sub: "Go online & accept deliveries", route: "/(auth)/login?role=delivery" },
-  { role: "admin", icon: "shield-checkmark", title: "BiteGo ", sub: "Save your time and order from BiteGo", route: "/(auth)/admin-login" },
+  { role: "admin", icon: "shield-checkmark", title: "KhauGo ", sub: "Save your time and order from KhauGo", route: "/(auth)/admin-login" },
 ];
 
 export default function Partner() {
@@ -19,7 +19,7 @@ export default function Partner() {
     <View style={{ flex: 1, backgroundColor: C.surface }}>
       <StackHeader title="Partner " />
       <View style={{ padding: S.lg, paddingBottom: insets.bottom + S.xl }}>
-        <Txt color={C.muted} style={{ marginBottom: S.md }}>Choose how you want to sign in to BiteGo.</Txt>
+        <Txt color={C.muted} style={{ marginBottom: S.md }}>Choose how you want to sign in to KhauGo.</Txt>
         {OPTIONS.map((o) => (
           <Pressable key={o.role} style={styles.card} onPress={() => router.push(o.route as any)} testID={`role-${o.role}`}>
             <View style={styles.icon}><Ionicons name={o.icon as any} size={24} color={C.brandPrimary} /></View>

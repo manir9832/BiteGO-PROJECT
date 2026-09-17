@@ -2,17 +2,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Location -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-    <!-- Internet -->
     <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- Notifications -->
     <uses-permission android:name="android.permission.NOTIFICATIONS" />
 
-    <!-- Storage -->
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32"
@@ -23,15 +17,11 @@
         android:maxSdkVersion="32"
         tools:replace="android:maxSdkVersion" />
 
-    <!-- Audio -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
-    <!-- System -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-    <!-- Queries -->
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
@@ -50,16 +40,9 @@
         android:supportsRtl="true"
         android:enableOnBackInvokedCallback="false">
 
-        <!-- ================================================= -->
-        <!-- Google Maps API Key                               -->
-        <!-- ================================================= -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBfRgu9SAyaRSO5hjyqQKZea9rM5pTURC4" />
-
-        <!-- ================================================= -->
-        <!-- Firebase Notification Configuration               -->
-        <!-- ================================================= -->
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
@@ -69,10 +52,6 @@
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/notification_icon" />
 
-        <!-- ================================================= -->
-        <!-- Expo Notification Configuration                    -->
-        <!-- ================================================= -->
-
         <meta-data
             android:name="expo.modules.notifications.default_notification_color"
             android:resource="@color/notification_icon_color" />
@@ -80,10 +59,6 @@
         <meta-data
             android:name="expo.modules.notifications.default_notification_icon"
             android:resource="@drawable/notification_icon" />
-
-        <!-- ================================================= -->
-        <!-- Expo Updates                                       -->
-        <!-- ================================================= -->
 
         <meta-data
             android:name="expo.modules.updates.ENABLED"
@@ -101,10 +76,6 @@
             android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS"
             android:value="0" />
 
-        <!-- ================================================= -->
-        <!-- Main Activity                                     -->
-        <!-- ================================================= -->
-
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode|smallestScreenSize|assetsPaths"
@@ -114,13 +85,24 @@
             android:exported="true"
             android:screenOrientation="portrait">
 
-            <!-- App Launcher -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- KhauGo deep link -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="khaugo" />
+            </intent-filter>
+
         </activity>
+
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
 
     </application>
 

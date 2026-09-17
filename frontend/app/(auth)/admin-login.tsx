@@ -39,7 +39,7 @@ export default function AdminLogin() {
       <KeyboardAwareScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: insets.bottom + S.xl }} bottomOffset={20} keyboardShouldPersistTaps="handled">
         <View style={styles.icon}><Ionicons name="shield-checkmark" size={28} color={C.brandPrimary} /></View>
         <Txt weight="semibold" size={T["2xl"]} style={{ marginTop: S.lg }}>⚠️</Txt>
-        <Txt color={C.muted} style={{ marginTop: S.xs, marginBottom: S.xl }}>BiteGo pvt ltd</Txt>
+        <Txt color={C.muted} style={{ marginTop: S.xs, marginBottom: S.xl }}>KhauGo pvt ltd</Txt>
 
         <Txt weight="medium" size={T.sm} color={C.onSurfaceTertiary} style={styles.lbl}>EMAIL</Txt>
         <TextInput testID="admin-email" value={email} onChangeText={setEmail} placeholder="email here"

@@ -5,7 +5,7 @@ import { Txt } from "@/src/components/ui";
 import { C, S, T } from "@/src/theme";
 
 const SECTIONS = [
-  { h: "1. Platform Usage", p: "BiteGo provides a platform connecting customers, restaurants and delivery partners. By using the app you agree to these terms." },
+  { h: "1. Platform Usage", p: "KhauGo provides a platform connecting customers, restaurants and delivery partners. By using the app you agree to these terms." },
   { h: "2. Ordering", p: "Orders are subject to restaurant availability and operating hours. Prices and charges shown at checkout are final for that order." },
   { h: "3. Cash on Delivery", p: "Payment is collected in cash at the time of delivery. Please keep the exact amount ready where possible." },
   { h: "4. Cancellation", p: "You may cancel an order before the restaurant begins preparing it. Orders not accepted by a restaurant within the allowed time are cancelled automatically." },
@@ -20,7 +20,7 @@ export default function Terms() {
     <View style={{ flex: 1, backgroundColor: C.surface }}>
       <StackHeader title="Terms & Conditions" />
       <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: insets.bottom + S.xl }}>
-        <Txt color={C.muted} style={{ marginBottom: S.md }}>Please read these terms carefully before using BiteGo.</Txt>
+        <Txt color={C.muted} style={{ marginBottom: S.md }}>Please read these terms carefully before using KhauGo.</Txt>
         {SECTIONS.map((s) => (
           <View key={s.h} style={{ marginTop: S.lg }}>
             <Txt weight="semibold" size={T.lg}>{s.h}</Txt>

@@ -63,7 +63,7 @@
 //                   <Row l="Platform Charge" v={money(item.platform_charge)} />
 //                   <Row l="Customer Delivery Charge" v={money(item.customer_delivery_charge)} />
 //                   <Row l="Delivery Partner Earning" v={money(item.delivery_partner_earning)} highlight />
-//                   <Row l="BiteGo Delivery Margin" v={money(item.bitego_delivery_margin)} />
+//                   <Row l="KhauGo Delivery Margin" v={money(item.KhauGo_delivery_margin)} />
 //                   <Row l="Restaurant Commission" v={money(item.restaurant_commission_amount)} />
 //                   <Row l="Restaurant Net Payable" v={money(item.restaurant_net_payable)} />
 //                   <View style={styles.divider} />
@@ -270,7 +270,7 @@ export default function AdminOrders() {
                   <Row l="Platform Charge" v={money(item.platform_charge)} />
                   <Row l="Customer Delivery Charge" v={money(item.customer_delivery_charge)} />
                   <Row l="Delivery Partner Earning" v={money(item.delivery_partner_earning)} highlight />
-                  <Row l="BiteGo Delivery Margin" v={money(item.bitego_delivery_margin)} />
+                  <Row l="KhauGo Delivery Margin" v={money(item.KhauGo_delivery_margin)} />
                   <Row l="Restaurant Commission" v={money(item.restaurant_commission_amount)} />
                   <Row l="Restaurant Net Payable" v={money(item.restaurant_net_payable)} />
                   <View style={styles.divider} />

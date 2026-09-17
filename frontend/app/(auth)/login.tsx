@@ -51,7 +51,7 @@ export default function Login() {
         <LinearGradient colors={["rgba(28,25,23,0.2)", "rgba(28,25,23,0.95)"]} style={StyleSheet.absoluteFill} />
         <View style={[styles.brandWrap, { paddingTop: insets.top + S.xl }]}>
           <View style={styles.logo}><Ionicons name="restaurant" size={26} color={C.onBrandPrimary} /></View>
-          <Txt weight="semibold" size={T["3xl"]} color="#fff" style={{ marginTop: S.md }}>BiteGo</Txt>
+          <Txt weight="semibold" size={T["3xl"]} color="#fff" style={{ marginTop: S.md }}>KhauGo</Txt>
           <Txt color="#EDE7DE" style={{ marginTop: S.xs }}>
             {role === "customer" ? "Great food, delivered warm." : `${meta.title}`}
           </Txt>

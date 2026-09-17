@@ -6,10 +6,10 @@ import { Txt } from "@/src/components/ui";
 import { C, R, S, T } from "@/src/theme";
 
 const SECTIONS = [
-  { h: "What is BiteGo?", p: "BiteGo is a food-delivery platform that connects hungry customers with nearby restaurants and reliable delivery partners. Order your favourite meals and have them delivered warm to your doorstep." },
-  { h: "How BiteGo works", p: "Browse restaurants near your location, add dishes to your cart, choose a delivery address and place your order with Cash on Delivery. Track every step from kitchen to your door." },
+  { h: "What is KhauGo?", p: "KhauGo is a food-delivery platform that connects hungry customers with nearby restaurants and reliable delivery partners. Order your favourite meals and have them delivered warm to your doorstep." },
+  { h: "How KhauGo works", p: "Browse restaurants near your location, add dishes to your cart, choose a delivery address and place your order with Cash on Delivery. Track every step from kitchen to your door." },
   { h: "For customers", p: "Discover local restaurants, search dishes, save favourites, reorder in a tap and rate your experience after every delivery." },
-  { h: "Restaurant partners", p: "Local restaurants join BiteGo to reach more customers, manage their menu and receive orders in real time." },
+  { h: "Restaurant partners", p: "Local restaurants join KhauGo to reach more customers, manage their menu and receive orders in real time." },
   { h: "Delivery partners", p: "Delivery partners accept nearby delivery requests, pick up from restaurants and deliver to customers, earning for every completed delivery." },
 ];
 
@@ -17,11 +17,11 @@ export default function About() {
   const insets = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: C.surface }}>
-      <StackHeader title="About BiteGo" />
+      <StackHeader title="About KhauGo" />
       <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: insets.bottom + S.xl }}>
         <View style={styles.logoWrap}>
           <View style={styles.logo}><Ionicons name="restaurant" size={28} color={C.onBrandPrimary} /></View>
-          <Txt weight="semibold" size={T["2xl"]} style={{ marginTop: S.md }}>BiteGo</Txt>
+          <Txt weight="semibold" size={T["2xl"]} style={{ marginTop: S.md }}>KhauGo</Txt>
           <Txt color={C.muted}>Great food, delivered warm.</Txt>
         </View>
         {SECTIONS.map((s) => (

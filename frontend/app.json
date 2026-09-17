@@ -7,14 +7,17 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+
     "ios": {
       "supportsTablet": true
     },
+
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -22,43 +25,57 @@
       },
       "package": "com.emergent.bitegodelivery.abr9pa",
       "googleServicesFile": "./google-services.json",
+
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyBfRgu9SAyaRSO5hjyqQKZea9rM5pTURC4"
+          "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
         }
       },
+
       "permissions": [
         "NOTIFICATIONS",
         "WAKE_LOCK",
         "VIBRATE"
       ]
     },
+
     "web": {
       "favicon": "./assets/images/favicon.png"
     },
+
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#ffffff",
+          "image": "./assets/images/splash.png",
+          "resizeMode": "contain"
+        }
+      ],
       [
         "react-native-maps",
         {
-          "googleMapsApiKey": "AIzaSyBfRgu9SAyaRSO5hjyqQKZea9rM5pTURC4"
+          "androidGoogleMapsApiKey": "YOUR_GOOGLE_MAPS_API_KEY"
         }
       ],
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/adaptive-icon.png",
+          "icon": "./assets/images/notification-icon.png",
           "color": "#ffffff",
           "sounds": [],
           "androidMode": "default",
-          "androidCollapsedTitle": "BiteGo"
+          "androidCollapsedTitle": "KhauGo"
         }
       ]
     ],
+
     "extra": {
       "eas": {
-        "projectId": "432acdb2-2296-44a4-9ab2-be0608467b87"
+        "projectId": "2ac6d653-0426-4580-b024-1f7e0e1d54fa"
       }
     },
-    "owner": "manir_dev"
+
+    "owner": "skymanir"
   }
 }

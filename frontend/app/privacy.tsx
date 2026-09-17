@@ -5,7 +5,7 @@ import { Txt } from "@/src/components/ui";
 import { C, S, T } from "@/src/theme";
 
 const SECTIONS = [
-  { h: "1. Account Information", p: "We collect your name and mobile number to create and secure your BiteGo account. Your mobile number is verified via OTP." },
+  { h: "1. Account Information", p: "We collect your name and mobile number to create and secure your KhauGo account. Your mobile number is verified via OTP." },
   { h: "2. Location", p: "With your permission we use your device location to show nearby restaurants, calculate delivery distance and enable accurate delivery. You can change or remove saved locations at any time." },
   { h: "3. Orders", p: "We store your order history, items, delivery address and payment method (Cash on Delivery) to process and deliver your orders." },
   { h: "4. Device Information", p: "We may collect basic device details to keep the service reliable and secure." },
@@ -14,7 +14,7 @@ const SECTIONS = [
   { h: "7. Third-Party Services", p: "We use trusted third-party services for SMS OTP, maps and image hosting. These providers process data only as needed to deliver their service." },
   { h: "8. Security", p: "We use industry-standard measures including encryption in transit, hashed credentials and access controls to protect your data." },
   { h: "9. Your Rights", p: "You may access, update or request deletion of your account data by contacting our support team." },
-  { h: "10. Account Deletion & Contact", p: "To delete your account or raise a privacy request, contact BiteGo support at the helpline listed in the Help & Support section." },
+  { h: "10. Account Deletion & Contact", p: "To delete your account or raise a privacy request, contact KhauGo support at the helpline listed in the Help & Support section." },
 ];
 
 export default function Privacy() {

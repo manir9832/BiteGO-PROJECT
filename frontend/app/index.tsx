@@ -1,15 +1,4 @@
 
-
-
-
-
-
-
-
-
-
-
-
 import { useEffect } from "react";
 import { View } from "react-native";
 import { useRouter, useRootNavigationState } from "expo-router";

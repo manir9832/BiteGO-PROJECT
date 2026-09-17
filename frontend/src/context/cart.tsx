@@ -16,7 +16,7 @@
 // };
 
 // const EMPTY: CartState = { restaurant_id: null, restaurant_name: null, lines: [] };
-// const KEY = "bitego.cart";
+// const KEY = "KhauGo.cart";
 
 // type PendingAdd = { food: any; restaurant: { id: string; name: string } } | null;
 
@@ -159,7 +159,7 @@ type CartState = {
 };
 
 const EMPTY: CartState = { restaurant_id: null, restaurant_name: null, lines: [] };
-const KEY = "bitego.cart";
+const KEY = "KhauGo.cart";
 
 type PendingAdd = { food: any; restaurant: { id: string; name: string } } | null;
 

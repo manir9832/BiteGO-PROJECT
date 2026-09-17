@@ -6,7 +6,7 @@
 // import { storage } from "@/src/utils/storage";
 
 // export type Loc = { lat: number; lng: number; address: string };
-// const KEY = "bitego.location";
+// const KEY = "KhauGo.location";
 // const DEFAULT: Loc = { lat: 22.5726, lng: 88.3639, address: "Kolkata, West Bengal" };
 
 // type LocationCtx = {
@@ -129,7 +129,7 @@ import { api } from "@/src/api";
 import { storage } from "@/src/utils/storage";
 
 export type Loc = { lat: number; lng: number; address: string };
-const KEY = "bitego.location";
+const KEY = "KhauGo.location";
 const DEFAULT: Loc = { lat: 22.5726, lng: 88.3639, address: "Kolkata, West Bengal" };
 
 type LocationCtx = {

@@ -62,7 +62,7 @@ export default function SelectLocation() {
           <Ionicons name={available === false ? "alert-circle" : "checkmark-circle"} size={20}
             color={available === false ? C.error : C.success} />
           <Txt size={T.sm} weight="medium" color={available === false ? C.error : C.success} style={{ flex: 1 }}>
-            {available === false ? "BiteGo is not available at your current location"
+            {available === false ? "KhauGo is not available at your current location"
               : `Delivering in ${areaName || "your area"}`}
           </Txt>
         </View>

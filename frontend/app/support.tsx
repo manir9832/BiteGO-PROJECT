@@ -12,7 +12,7 @@
 //   { q: "How do I place an order?", a: "Choose a restaurant, add items to your cart, pick a delivery address and place your order with Cash on Delivery." },
 //   { q: "How is the delivery charge calculated?", a: "Delivery charge depends on the distance between the restaurant and your delivery address. The exact amount is shown at checkout." },
 //   { q: "Can I cancel my order?", a: "Yes, you can cancel before the restaurant starts preparing your food from the order tracking screen." },
-//   { q: "What payment methods are supported?", a: "Currently BiteGo supports Cash on Delivery (COD)." },
+//   { q: "What payment methods are supported?", a: "Currently KhauGo supports Cash on Delivery (COD)." },
 //   { q: "How do I track my order?", a: "Open the order from the Orders tab to see a live status timeline from placement to delivery." },
 // ];
 
@@ -26,7 +26,7 @@
 //       <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: insets.bottom + S.xl }}>
 //         <Card style={styles.helpCard}>
 //           <View style={styles.helpIcon}><Ionicons name="call" size={24} color={C.onBrandPrimary} /></View>
-//           <Txt weight="semibold" size={T.lg} style={{ marginTop: S.md }}>BiteGo Helpline</Txt>
+//           <Txt weight="semibold" size={T.lg} style={{ marginTop: S.md }}>KhauGo Helpline</Txt>
 //           <Txt color={C.muted} style={{ marginTop: 2 }}>We're here to help with any order</Txt>
 //           <Txt weight="semibold" size={T["2xl"]} color={C.brandPrimary} style={{ marginTop: S.sm }}>{HELPLINE}</Txt>
 //           <Button label="Call Helpline" icon="call" onPress={() => Linking.openURL(`tel:${HELPLINE}`)}
@@ -86,7 +86,7 @@ const FAQ = [
   { q: "How do I place an order?", a: "Choose a restaurant, add items to your cart, pick a delivery address and place your order with Cash on Delivery." },
   { q: "How is the delivery charge calculated?", a: "Delivery charge depends on the distance between the restaurant and your delivery address. The exact amount is shown at checkout." },
   { q: "Can I cancel my order?", a: "Yes, you can cancel before the restaurant starts preparing your food from the order tracking screen." },
-  { q: "What payment methods are supported?", a: "Currently BiteGo supports Cash on Delivery (COD)." },
+  { q: "What payment methods are supported?", a: "Currently KhauGo supports Cash on Delivery (COD)." },
   { q: "How do I track my order?", a: "Open the order from the Orders tab to see a live status timeline from placement to delivery." },
 ];
 
@@ -117,7 +117,7 @@ export default function Support() {
       <ScrollView contentContainerStyle={{ padding: S.lg, paddingBottom: insets.bottom + S.xl }}>
         <Card style={styles.helpCard}>
           <View style={styles.helpIcon}><Ionicons name="call" size={24} color={C.onBrandPrimary} /></View>
-          <Txt weight="semibold" size={T.lg} style={{ marginTop: S.md }}>BiteGo Helpline</Txt>
+          <Txt weight="semibold" size={T.lg} style={{ marginTop: S.md }}>KhauGo Helpline</Txt>
           <Txt color={C.muted} style={{ marginTop: 2 }}>We're here to help with any order</Txt>
           
           {/* এখানে অ্যাডমিন প্যানেল থেকে চেঞ্জ করা রিয়েল-টাইম নম্বরটি দেখাবে */}

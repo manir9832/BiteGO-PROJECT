@@ -12,9 +12,12 @@ const NAV = [
   { label: "Partners", icon: "bicycle", path: "/(admin)/partners" },
   { label: "Customers", icon: "people", path: "/(admin)/customers" },
   { label: "Orders", icon: "receipt", path: "/(admin)/orders" },
+  
+
   { label: "Broadcast", icon: "megaphone", path: "/(admin)/broadcast" },
-  { label: "Banners", icon: "images", path: "/(admin)/banners" },
+  { label: "Banners", icon: "images", path: "/(admin)/banner" },
   { label: "Settings", icon: "options", path: "/(admin)/settings" },
+  
   { label: "Service Areas", icon: "map", path: "/(admin)/service-areas" },
   { label: "Settlements", icon: "cash", path: "/(admin)/settlements" },
 ];
@@ -30,7 +33,7 @@ export default function AdminLayout() {
       <View style={styles.topbar}>
         <View style={styles.brand}>
           <View style={styles.logo}><Ionicons name="restaurant" size={18} color={C.onBrandPrimary} /></View>
-          <Txt weight="semibold" size={T.lg}>BiteGo Admin</Txt>
+          <Txt weight="semibold" size={T.lg}>KhauGo Admin</Txt>
         </View>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.navWrap} contentContainerStyle={styles.nav}>

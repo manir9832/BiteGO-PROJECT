@@ -40,7 +40,7 @@ yarn-error.*
 app-example
 
 # Firebase
-google-services.json
+# google-services.json
 
 # Generated project files
 backend/.emergent/

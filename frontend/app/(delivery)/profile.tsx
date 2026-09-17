@@ -40,7 +40,7 @@
 //       <Card style={styles.row}><Ionicons name="power" size={20} color={p?.online ? C.success : C.muted} /><Txt style={{ flex: 1 }}>Status</Txt><Txt weight="medium" color={p?.online ? C.success : C.muted}>{p?.online ? "Online" : "Offline"}</Txt></Card>
 
 //       <Txt weight="medium" size={T.sm} color={C.muted} style={{ marginTop: S.xl, marginBottom: S.sm }}>SUPPORT</Txt>
-//       <Card style={styles.row}><Ionicons name="headset-outline" size={20} color={C.brandPrimary} /><Txt style={{ flex: 1 }}>BiteGo Helpline</Txt><Txt weight="medium" color={C.brandPrimary}>{HELPLINE}</Txt></Card>
+//       <Card style={styles.row}><Ionicons name="headset-outline" size={20} color={C.brandPrimary} /><Txt style={{ flex: 1 }}>KhauGo Helpline</Txt><Txt weight="medium" color={C.brandPrimary}>{HELPLINE}</Txt></Card>
 //       <Button label="Call Support" icon="call" variant="secondary" onPress={() => Linking.openURL(`tel:${HELPLINE}`)} style={{ marginTop: S.md }} testID="delivery-call-support" />
 
 //       <Button label="Log Out" variant="ghost" icon="log-out-outline" onPress={logout} style={{ marginTop: S.xl }} testID="delivery-logout" />
@@ -130,7 +130,7 @@ export default function DeliveryProfile() {
       <Txt weight="medium" size={T.sm} color={C.muted} style={{ marginTop: S.xl, marginBottom: S.sm }}>SUPPORT</Txt>
       
       {/* এখানে অ্যাডমিন প্যানেল থেকে বদলানো রিয়েল-টাইম হেল্পলাইন নম্বরটি দেখাবে */}
-      <Card style={styles.row}><Ionicons name="headset-outline" size={20} color={C.brandPrimary} /><Txt style={{ flex: 1 }}>BiteGo Helpline</Txt><Txt weight="medium" color={C.brandPrimary}>{helpline}</Txt></Card>
+      <Card style={styles.row}><Ionicons name="headset-outline" size={20} color={C.brandPrimary} /><Txt style={{ flex: 1 }}>KhauGo Helpline</Txt><Txt weight="medium" color={C.brandPrimary}>{helpline}</Txt></Card>
       
       <Button label="Call Support" icon="call" variant="secondary" onPress={() => Linking.openURL(`tel:${helpline}`)} style={{ marginTop: S.md }} testID="delivery-call-support" />
 

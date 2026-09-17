@@ -26,7 +26,7 @@ export default function Profile() {
     {
       title: "Support & Info", items: [
         { icon: "headset-outline", label: "Help & Support", route: "/support" },
-        { icon: "information-circle-outline", label: "About BiteGo", route: "/about" },
+        { icon: "information-circle-outline", label: "About KhauGo", route: "/about" },
         { icon: "shield-checkmark-outline", label: "Privacy Policy", route: "/privacy" },
         { icon: "document-text-outline", label: "Terms & Conditions", route: "/terms" },
       ],
@@ -44,7 +44,7 @@ export default function Profile() {
           </Txt>
         </View>
         <View style={{ flex: 1 }}>
-          <Txt weight="semibold" size={T.xl} numberOfLines={1}>{user?.name || "BiteGo User"}</Txt>
+          <Txt weight="semibold" size={T.xl} numberOfLines={1}>{user?.name || "KhauGo User"}</Txt>
           <Txt color={C.muted}>+91 {user?.phone}</Txt>
         </View>
       </View>
@@ -76,7 +76,7 @@ export default function Profile() {
         </Pressable>
       </Card>
 
-      <Txt size={T.sm} color={C.muted} style={{ textAlign: "center", marginTop: S.xl }}>BiteGo · v1.0.0</Txt>
+      <Txt size={T.sm} color={C.muted} style={{ textAlign: "center", marginTop: S.xl }}>KhauGo · v1.0.0</Txt>
     </ScrollView>
   );
 }
