@@ -32,9 +32,7 @@ module.exports = ({ config }) => ({
     jsEngine: "jsc",
 
     // Firebase google-services.json
-    // EAS preview environment থেকে file path নেবে
     googleServicesFile:
-      process.env.GOOGLE_SERVICES_JSON ??
       config.android?.googleServicesFile,
 
     config: {
