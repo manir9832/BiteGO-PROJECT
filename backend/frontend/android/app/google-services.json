@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1341206090",
+    "project_id": "bitego-1c16b",
+    "storage_bucket": "bitego-1c16b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1341206090:android:b45c31ab5bd005475d80b3",
+        "android_client_info": {
+          "package_name": "com.emergent.bitegodelivery.abr9pa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdTCIyL52NFVgtoZ016ZLfWAwsbZ-F8BA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
