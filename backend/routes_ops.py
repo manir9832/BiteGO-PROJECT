@@ -1387,6 +1387,35 @@ def extract_order_details(o: dict):
     return phone, total
 
 
+# async def get_restaurant_phone(order: dict):
+#     restaurant_id = order.get("restaurant_id")
+
+#     if not restaurant_id:
+#         return ""
+
+#     restaurant = await db.restaurants.find_one({"_id": restaurant_id})
+
+#     if not restaurant:
+#         try:
+#             restaurant = await db.restaurants.find_one(
+#                 {"_id": oid(str(restaurant_id))}
+#             )
+#         except Exception:
+#             pass
+
+#     return (restaurant or {}).get("phone") or ""
+
+
+
+
+
+
+
+
+
+
+
+
 async def get_restaurant_phone(order: dict):
     restaurant_id = order.get("restaurant_id")
 
@@ -1401,9 +1430,27 @@ async def get_restaurant_phone(order: dict):
                 {"_id": oid(str(restaurant_id))}
             )
         except Exception:
-            pass
+            restaurant = None
 
-    return (restaurant or {}).get("phone") or ""
+    if restaurant:
+        phone = restaurant.get("phone")
+        if phone:
+            return phone
+
+        owner_id = restaurant.get("owner_id")
+        if owner_id:
+            owner = await db.users.find_one({"_id": owner_id})
+            if owner and owner.get("phone"):
+                return owner["phone"]
+
+    return ""
+
+
+
+
+
+
+
 
 
 @router.post("/delivery/register")
