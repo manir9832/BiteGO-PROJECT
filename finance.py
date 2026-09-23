@@ -44,33 +44,125 @@ def partner_earning(distance_km: float, settings: dict) -> int:
     return int(last["earning"] + (n - last["km"]) * inc)
 
 
+# def compute_totals(items: List[dict], distance_km: float, settings: dict,
+#                     commission_pct: float, fixed_fee: float) -> dict:
+#     """Returns an authoritative, snapshot-ready financial breakdown."""
+#     subtotal = sum(int(i["price"]) * int(i["quantity"]) for i in items)
+#     platform_charge = int(settings["platform_charge"])
+#     delivery_charge = customer_delivery_charge(distance_km, settings)
+#     earning = partner_earning(distance_km, settings)
+#     commission_amount = round(subtotal * float(commission_pct) / 100.0, 2)
+#     fixed_fee = float(fixed_fee)
+
+#     customer_total = subtotal + platform_charge + delivery_charge
+#     restaurant_net = round(subtotal - commission_amount - fixed_fee, 2)
+#     bitego_delivery_margin = delivery_charge - earning
+
+#     return {
+#         "distance_km": round(distance_km, 3),
+#         "food_subtotal": subtotal,
+#         "platform_charge": platform_charge,
+#         "customer_delivery_charge": delivery_charge,
+#         "delivery_partner_earning": earning,
+#         "restaurant_commission_pct": float(commission_pct),
+#         "restaurant_commission_amount": commission_amount,
+#         "restaurant_fixed_fee": fixed_fee,
+#         "restaurant_net_payable": restaurant_net,
+#         "bitego_delivery_margin": bitego_delivery_margin,
+#         "customer_total": customer_total,
+#     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 def compute_totals(items: List[dict], distance_km: float, settings: dict,
-                    commission_pct: float, fixed_fee: float) -> dict:
+                   commission_pct: float, fixed_fee: float) -> dict:
     """Returns an authoritative, snapshot-ready financial breakdown."""
-    subtotal = sum(int(i["price"]) * int(i["quantity"]) for i in items)
+
+    # Restaurant/base price subtotal
+    subtotal = sum(
+        int(i["price"]) * int(i["quantity"])
+        for i in items
+    )
+
+    # Admin food margin
+    admin_food_margin = sum(
+        int(i.get("admin_margin", 0)) * int(i["quantity"])
+        for i in items
+    )
+
+    # Customer-facing food subtotal
+    customer_food_subtotal = sum(
+        int(i.get("customer_price", i["price"])) * int(i["quantity"])
+        for i in items
+    )
+
     platform_charge = int(settings["platform_charge"])
     delivery_charge = customer_delivery_charge(distance_km, settings)
     earning = partner_earning(distance_km, settings)
-    commission_amount = round(subtotal * float(commission_pct) / 100.0, 2)
+
+    # Restaurant commission is calculated ONLY on restaurant/base price
+    commission_amount = round(
+        subtotal * float(commission_pct) / 100.0,
+        2
+    )
+
     fixed_fee = float(fixed_fee)
 
-    customer_total = subtotal + platform_charge + delivery_charge
-    restaurant_net = round(subtotal - commission_amount - fixed_fee, 2)
+    # Customer pays customer-facing food price + existing charges
+    customer_total = (
+        customer_food_subtotal
+        + platform_charge
+        + delivery_charge
+    )
+
+    # Restaurant still receives settlement based on base restaurant price
+    restaurant_net = round(
+        subtotal - commission_amount - fixed_fee,
+        2
+    )
+
     bitego_delivery_margin = delivery_charge - earning
 
     return {
         "distance_km": round(distance_km, 3),
+
+        # Restaurant/base food subtotal
         "food_subtotal": subtotal,
+
+        # Customer-facing food subtotal
+        "customer_food_subtotal": customer_food_subtotal,
+
+        # Admin's separate food margin
+        "admin_food_margin": admin_food_margin,
+
         "platform_charge": platform_charge,
         "customer_delivery_charge": delivery_charge,
         "delivery_partner_earning": earning,
+
         "restaurant_commission_pct": float(commission_pct),
         "restaurant_commission_amount": commission_amount,
         "restaurant_fixed_fee": fixed_fee,
         "restaurant_net_payable": restaurant_net,
+
         "bitego_delivery_margin": bitego_delivery_margin,
+
         "customer_total": customer_total,
     }
+
+
+
+
+
 
 
 # ==========================================

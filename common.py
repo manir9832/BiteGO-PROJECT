@@ -39,7 +39,7 @@ ACTIVE_STATUSES = [
 
 RESTAURANT_ACCEPT_TIMEOUT_MIN = 10
 
-_HIDDEN_KEYS = {"password_hash", "otp_hash", "refresh_hash"}
+_HIDDEN_KEYS = {"password_hash", "otp_hash", "refresh_hash", "delivery_otp_hash"}
 
 
 def ser(doc):

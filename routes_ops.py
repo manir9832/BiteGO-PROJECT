@@ -1,5 +1,4 @@
 
-
 # """Restaurant-owner and Delivery-partner API (backend for those apps)."""
 # from datetime import datetime, timedelta, timezone
 # from typing import List, Optional
@@ -10,7 +9,8 @@
 # import finance
 # from common import ACTIVE_STATUSES, notify, ser, transition_order
 # from db import db, get_settings, now
-# from security import current_user, oid, require_roles
+# # from security import current_user, oid, require_roles
+# from security import current_user, hash_secret, oid, require_roles
 
 # router = APIRouter(prefix="/api")
 
@@ -27,10 +27,14 @@
 
 # @router.post("/users/push-token")
 # async def save_push_token(body: PushTokenBody, user=Depends(current_user)):
+#     print(f"[PUSH DB DEBUG] db={db.name} user_id={user['_id']}")
 #     await db.users.update_one(
 #         {"_id": user["_id"]}, 
 #         {"$set": {"push_token": body.push_token}}
 #     )
+#     print(f"[PUSH TOKEN DEBUG] user={user['_id']} token={body.push_token}")
+#     saved_user = await db.users.find_one({"_id": user["_id"]})
+#     print(f"[PUSH TOKEN CHECK] saved_user={saved_user}")
 #     return {"ok": True}
 
 
@@ -233,11 +237,117 @@
 # @router.post("/restaurant/orders/{order_id}/ready")
 # async def ready_order(order_id: str, user=Depends(require_roles("restaurant"))):
 #     o = await _restaurant_order(user, order_id)
-#     updated = await transition_order(o, "READY", by="restaurant")
-#     await notify(o["customer_id"], "Food ready", "Waiting for a delivery partner.")
+
+#     # Move order to READY. Delivery requests are created from READY orders.
+#     updated = await transition_order(
+#         o,
+#         "READY",
+#         by="restaurant"
+#     )
+
+#     # Notify customer that the food is ready.
+#     await notify(
+#         o["customer_id"],
+#         "Food ready",
+#         "Waiting for a delivery partner."
+#     )
+
+#     # Notify eligible ONLINE delivery partners.
+#     # Only approved partners in the same service area receive the request.
+   
+#     # partner_query = {
+#     #     "status": "approved",
+#     #     "online": True,
+#     # }
+
+#     # if updated.get("service_area_id"):
+#     #     partner_query["service_area_id"] = updated["service_area_id"]
+
+
+#     partner_query = {
+#     "status": "approved",
+#     "online": True,
+#     }
+
+#     order_area_id = updated.get("service_area_id")
+
+#     if order_area_id:
+#      partner_query["$or"] = [
+#         {"service_area_id": order_area_id},
+#         {"service_area_id": None},
+#     ]
+
+       
+
+
+#     partners = await db.delivery_partners.find(
+#         partner_query
+#     ).to_list(100)
+
+#     print(f"[PUSH DEBUG] partner_query = {partner_query}")
+#     print(f"[PUSH DEBUG] partners_found = {len(partners)}")
+#     print(f"[PUSH DEBUG] partners = {partners}")
+
+#     for partner in partners:
+#         partner_user_id = partner.get("user_id")
+
+#         if not partner_user_id:
+#             continue
+
+#         await notify(
+#             partner_user_id,
+#             "New delivery request",
+#             f"{updated.get('restaurant_name', 'Restaurant')} has a new delivery request.",
+#             type_="delivery_request",
+#             data={
+#                 "order_id": str(updated["_id"])
+#             }
+#         )
+
 #     return {"order": ser(updated)}
 
 
+# # # --- MENU / FOODS ---
+# # @router.get("/restaurant/foods")
+# # async def restaurant_foods(user=Depends(require_roles("restaurant", "admin"))):
+# #     r = await _my_restaurant(user)
+# #     if not r:
+# #         return {"foods": []}
+# #     rows = await db.foods.find({"restaurant_id": r["_id"], "deleted_at": None}).to_list(500)
+# #     return {"foods": ser(rows)}
+
+
+# # @router.post("/restaurant/foods")
+# # async def add_food(body: FoodBody, user=Depends(require_roles("restaurant"))):
+# #     r = await _my_restaurant(user)
+# #     _ensure_approved(r)
+# #     doc = {**body.model_dump(), "restaurant_id": r["_id"],
+# #            "deleted_at": None, "created_at": now()}
+# #     res = await db.foods.insert_one(doc)
+# #     return {"food": ser(await db.foods.find_one({"_id": res.inserted_id}))}
+
+
+# # @router.put("/restaurant/foods/{food_id}")
+# # async def edit_food(food_id: str, body: FoodBody,
+# #                     user=Depends(require_roles("restaurant"))):
+# #     r = await _my_restaurant(user)
+# #     _ensure_approved(r)
+# #     await db.foods.update_one({"_id": oid(food_id), "restaurant_id": r["_id"]},
+# #                               {"$set": body.model_dump()})
+# #     return {"food": ser(await db.foods.find_one({"_id": oid(food_id)}))}
+
+
+# # @router.delete("/restaurant/foods/{food_id}")
+# # async def delete_food(food_id: str, user=Depends(require_roles("restaurant"))):
+# #     r = await _my_restaurant(user)
+# #     _ensure_approved(r)
+# #     await db.foods.update_one({"_id": oid(food_id), "restaurant_id": r["_id"]},
+# #                               {"$set": {"deleted_at": now(), "available": False}})
+# #     return {"ok": True}
+
+
+
+# # --- MENU / FOODS ---
 
 
 
@@ -378,6 +488,10 @@
 # class LocBody(BaseModel):
 #     lat: float
 #     lng: float
+
+
+# class DeliveryOtpBody(BaseModel):
+#     otp: str = Field(min_length=6, max_length=6)
 
 
 # async def _partner(user):
@@ -529,18 +643,83 @@
 #     return {"order": ser(updated)}
 
 
+# # @router.post("/delivery/orders/{order_id}/deliver")
+# # async def delivery_deliver(order_id: str, user=Depends(require_roles("delivery"))):
+# #     p = await _partner(user)
+# #     if not p:
+# #         raise HTTPException(404, "Register first")
+# #     o = await db.orders.find_one({"_id": oid(order_id),
+# #                                   "delivery_partner_id": p["_id"]})
+# #     if not o:
+# #         raise HTTPException(404, "Order not found")
+# #     updated = await transition_order(o, "DELIVERED", by="delivery",
+# #                                    extra={"delivered_at": now()})
+# #     await notify(o["customer_id"], "Delivered", "Enjoy your meal! Rate your order.")
+# #     return {"order": ser(updated)}
+
+
+
+
 # @router.post("/delivery/orders/{order_id}/deliver")
-# async def delivery_deliver(order_id: str, user=Depends(require_roles("delivery"))):
+# async def delivery_deliver(
+#     order_id: str,
+#     body: DeliveryOtpBody,
+#     user=Depends(require_roles("delivery"))
+# ):
 #     p = await _partner(user)
+
 #     if not p:
 #         raise HTTPException(404, "Register first")
-#     o = await db.orders.find_one({"_id": oid(order_id),
-#                                   "delivery_partner_id": p["_id"]})
+
+#     o = await db.orders.find_one({
+#         "_id": oid(order_id),
+#         "delivery_partner_id": p["_id"]
+#     })
+
 #     if not o:
 #         raise HTTPException(404, "Order not found")
-#     updated = await transition_order(o, "DELIVERED", by="delivery",
-#                                    extra={"delivered_at": now()})
-#     await notify(o["customer_id"], "Delivered", "Enjoy your meal! Rate your order.")
+
+#     if o.get("status") != "OUT_FOR_DELIVERY":
+#         raise HTTPException(
+#             409,
+#             "Order is not out for delivery"
+#         )
+
+#     delivery_otp_hash = o.get("delivery_otp_hash")
+
+#     if not delivery_otp_hash:
+#         raise HTTPException(
+#             400,
+#             "Delivery OTP is not available for this order"
+#         )
+
+#     if hash_secret(body.otp) != delivery_otp_hash:
+#         await db.orders.update_one(
+#             {"_id": o["_id"]},
+#             {"$inc": {"delivery_otp_attempts": 1}}
+#         )
+
+#         raise HTTPException(
+#             400,
+#             "Invalid delivery OTP"
+#         )
+
+#     updated = await transition_order(
+#         o,
+#         "DELIVERED",
+#         by="delivery",
+#         extra={
+#             "delivered_at": now(),
+#             "delivery_otp_verified": True,
+#         }
+#     )
+
+#     await notify(
+#         o["customer_id"],
+#         "Delivered",
+#         "Enjoy your meal! Rate your order."
+#     )
+
 #     return {"order": ser(updated)}
 
 
@@ -680,55 +859,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 """Restaurant-owner and Delivery-partner API (backend for those apps)."""
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
@@ -739,7 +869,8 @@ from pydantic import BaseModel, Field
 import finance
 from common import ACTIVE_STATUSES, notify, ser, transition_order
 from db import db, get_settings, now
-from security import current_user, oid, require_roles
+# from security import current_user, oid, require_roles
+from security import current_user, hash_secret, oid, require_roles
 
 router = APIRouter(prefix="/api")
 
@@ -1219,6 +1350,10 @@ class LocBody(BaseModel):
     lng: float
 
 
+class DeliveryOtpBody(BaseModel):
+    otp: str = Field(min_length=6, max_length=6)
+
+
 async def _partner(user):
     if not user or "_id" not in user:
         return None
@@ -1250,6 +1385,25 @@ def extract_order_details(o: dict):
     )
 
     return phone, total
+
+
+async def get_restaurant_phone(order: dict):
+    restaurant_id = order.get("restaurant_id")
+
+    if not restaurant_id:
+        return ""
+
+    restaurant = await db.restaurants.find_one({"_id": restaurant_id})
+
+    if not restaurant:
+        try:
+            restaurant = await db.restaurants.find_one(
+                {"_id": oid(str(restaurant_id))}
+            )
+        except Exception:
+            pass
+
+    return (restaurant or {}).get("phone") or ""
 
 
 @router.post("/delivery/register")
@@ -1303,10 +1457,13 @@ async def delivery_requests(user=Depends(require_roles("delivery"))):
     out = []
     for o in rows:
         phone, total = extract_order_details(o)
+        restaurant_phone = await get_restaurant_phone(o)
+
         out.append({
             **ser(o),
             "your_earning": o.get("delivery_partner_earning", 0),
             "customer_phone": phone,
+            "restaurant_phone": restaurant_phone,
             "customer_total": total,
             "payment_method": o.get("payment_method", "COD")
         })
@@ -1332,8 +1489,11 @@ async def delivery_accept(order_id: str, user=Depends(require_roles("delivery"))
                  f"{p['name']} will deliver your order.")
     
     phone, total = extract_order_details(res)
+    restaurant_phone = await get_restaurant_phone(res)
+
     order_data = ser(res)
     order_data["customer_phone"] = phone
+    order_data["restaurant_phone"] = restaurant_phone
     order_data["customer_total"] = total
     order_data["payment_method"] = res.get("payment_method", "COD")
 
@@ -1368,18 +1528,83 @@ async def delivery_start(order_id: str, user=Depends(require_roles("delivery")))
     return {"order": ser(updated)}
 
 
+# @router.post("/delivery/orders/{order_id}/deliver")
+# async def delivery_deliver(order_id: str, user=Depends(require_roles("delivery"))):
+#     p = await _partner(user)
+#     if not p:
+#         raise HTTPException(404, "Register first")
+#     o = await db.orders.find_one({"_id": oid(order_id),
+#                                   "delivery_partner_id": p["_id"]})
+#     if not o:
+#         raise HTTPException(404, "Order not found")
+#     updated = await transition_order(o, "DELIVERED", by="delivery",
+#                                    extra={"delivered_at": now()})
+#     await notify(o["customer_id"], "Delivered", "Enjoy your meal! Rate your order.")
+#     return {"order": ser(updated)}
+
+
+
+
 @router.post("/delivery/orders/{order_id}/deliver")
-async def delivery_deliver(order_id: str, user=Depends(require_roles("delivery"))):
+async def delivery_deliver(
+    order_id: str,
+    body: DeliveryOtpBody,
+    user=Depends(require_roles("delivery"))
+):
     p = await _partner(user)
+
     if not p:
         raise HTTPException(404, "Register first")
-    o = await db.orders.find_one({"_id": oid(order_id),
-                                  "delivery_partner_id": p["_id"]})
+
+    o = await db.orders.find_one({
+        "_id": oid(order_id),
+        "delivery_partner_id": p["_id"]
+    })
+
     if not o:
         raise HTTPException(404, "Order not found")
-    updated = await transition_order(o, "DELIVERED", by="delivery",
-                                   extra={"delivered_at": now()})
-    await notify(o["customer_id"], "Delivered", "Enjoy your meal! Rate your order.")
+
+    if o.get("status") != "OUT_FOR_DELIVERY":
+        raise HTTPException(
+            409,
+            "Order is not out for delivery"
+        )
+
+    delivery_otp_hash = o.get("delivery_otp_hash")
+
+    if not delivery_otp_hash:
+        raise HTTPException(
+            400,
+            "Delivery OTP is not available for this order"
+        )
+
+    if hash_secret(body.otp) != delivery_otp_hash:
+        await db.orders.update_one(
+            {"_id": o["_id"]},
+            {"$inc": {"delivery_otp_attempts": 1}}
+        )
+
+        raise HTTPException(
+            400,
+            "Invalid delivery OTP"
+        )
+
+    updated = await transition_order(
+        o,
+        "DELIVERED",
+        by="delivery",
+        extra={
+            "delivered_at": now(),
+            "delivery_otp_verified": True,
+        }
+    )
+
+    await notify(
+        o["customer_id"],
+        "Delivered",
+        "Enjoy your meal! Rate your order."
+    )
+
     return {"order": ser(updated)}
 
 
@@ -1411,8 +1636,11 @@ async def delivery_active(user=Depends(require_roles("delivery"))):
     out = []
     for o in rows:
         phone, total = extract_order_details(o)
+        restaurant_phone = await get_restaurant_phone(o)
+
         order_dict = ser(o)
         order_dict["customer_phone"] = phone
+        order_dict["restaurant_phone"] = restaurant_phone
         order_dict["customer_total"] = total
         order_dict["payment_method"] = o.get("payment_method", "COD")
         out.append(order_dict)
