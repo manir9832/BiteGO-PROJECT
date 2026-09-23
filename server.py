@@ -2685,7 +2685,11 @@ async def otp_request(body: OtpRequest):
                     url,
                     params=params,
                 )
-    
+            logger.info(
+                "Renflair OTP response: status=%s body=%s",
+                response.status_code,
+                response.text[:1000],
+            )
             if response.is_error:
                 logger.error(
                     "Renflair OTP failed: status=%s body=%s",
