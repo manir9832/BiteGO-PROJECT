@@ -3,6 +3,17 @@
     "version": ">= 12.0.0"
   },
   "build": {
+    "development": {
+      "environment": "preview",
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_BACKEND_URL": "https://bitego-project.onrender.com"
+      }
+    },
     "preview": {
       "environment": "preview",
       "android": {
@@ -13,6 +24,7 @@
       }
     },
     "production": {
+      "environment": "production",
       "android": {
         "buildType": "app-bundle"
       }
