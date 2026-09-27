@@ -1,4 +1,4 @@
-// Web map implementation using the Google Maps JavaScript API.
+﻿// Web map implementation using the Google Maps JavaScript API.
 // Metro serves this file on web; native platforms use AppMap.tsx.
 
 import React, { useEffect, useRef } from "react";

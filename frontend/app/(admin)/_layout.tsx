@@ -33,7 +33,7 @@ export default function AdminLayout() {
       <View style={styles.topbar}>
         <View style={styles.brand}>
           <View style={styles.logo}><Ionicons name="restaurant" size={18} color={C.onBrandPrimary} /></View>
-          <Txt weight="semibold" size={T.lg}>KhauGo Admin</Txt>
+          <Txt weight="semibold" size={T.lg}>SKYRAN Admin</Txt>
         </View>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.navWrap} contentContainerStyle={styles.nav}>

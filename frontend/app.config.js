@@ -1,4 +1,4 @@
-// Injects Google Maps native keys + location plugin from environment variables.
+﻿// Injects Google Maps native keys + location plugin from environment variables.
 // Base config lives in app.json and is passed in as `config`.
 
 module.exports = ({ config }) => ({
@@ -29,8 +29,6 @@ module.exports = ({ config }) => ({
   android: {
     ...config.android,
 
-    jsEngine: "jsc",
-
     // Firebase google-services.json
     googleServicesFile:
       config.android?.googleServicesFile,
@@ -48,6 +46,7 @@ module.exports = ({ config }) => ({
 
   plugins: [
     ...(config.plugins || []),
+    "expo-router",
 
     [
       "expo-location",
@@ -66,3 +65,4 @@ module.exports = ({ config }) => ({
     ],
   ],
 });
+

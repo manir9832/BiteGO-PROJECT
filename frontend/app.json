@@ -1,23 +1,15 @@
-{
+﻿{
   "expo": {
-    "name": "KhauGo",
+    "name": "SKYRAN",
     "slug": "BiteGo",
-    "scheme": "khaugo",
+    "scheme": "skyran",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-
     "ios": {
       "supportsTablet": true
     },
-
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -25,24 +17,20 @@
       },
       "package": "com.emergent.bitegodelivery.abr9pa",
       "googleServicesFile": "./google-services.json",
-
       "config": {
         "googleMaps": {
           "apiKey": "YOUR_GOOGLE_MAPS_API_KEY"
         }
       },
-
       "permissions": [
         "NOTIFICATIONS",
         "WAKE_LOCK",
         "VIBRATE"
       ]
     },
-
     "web": {
       "favicon": "./assets/images/favicon.png"
     },
-
     "plugins": [
       [
         "expo-splash-screen",
@@ -69,13 +57,12 @@
         }
       ]
     ],
-
+    "owner": "khaugo",
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "2ac6d653-0426-4580-b024-1f7e0e1d54fa"
+        "projectId": "cd0038ff-50f5-46f1-8f2f-014e5f5670d8"
       }
-    },
-
-    "owner": "skymanir"
+    }
   }
 }

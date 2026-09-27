@@ -77,7 +77,7 @@ export default function RootLayout() {
     if (!ready) return;
 
     // Hide native splash and immediately show
-    // the full-screen KhauGo splash poster.
+    // the full-screen SKYRAN splash poster.
     SplashScreen.hideAsync();
 
     setShowAppSplash(true);
@@ -138,7 +138,7 @@ export default function RootLayout() {
 
                     <CartConflictModal />
 
-                    {/* Full-screen KhauGo splash poster */}
+                    {/* Full-screen SKYRAN splash poster */}
                     {showAppSplash && (
                       <View
                         style={{

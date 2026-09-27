@@ -46,3 +46,9 @@ app-example
 backend/.emergent/
 backend/memory/
 backend/test_reports/
+
+# Local Android/debug files
+*.keystore
+android_backup/
+android-backup/
+app-current-backup/
