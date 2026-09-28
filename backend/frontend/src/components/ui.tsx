@@ -78,7 +78,7 @@
 //       </View>
 //       <Txt weight="semibold" size={T.xl} style={{ marginTop: S.lg }}>Connection lost</Txt>
 //       <Txt color={C.muted} style={{ marginTop: S.sm, textAlign: "center" }}>
-//         {message || "We couldn't reach KhauGo. Check your connection."}
+//         {message || "We couldn't reach SKYRAN. Check your connection."}
 //       </Txt>
 //       <Button label="Retry" onPress={onRetry} icon="refresh" style={{ marginTop: S.lg, paddingHorizontal: S.xl }} testID="retry-button" />
 //     </View>
@@ -462,7 +462,7 @@ export function ErrorState({
         }}
       >
         {message ||
-          "We couldn't reach BiteGo. Check your connection."}
+          "We couldn't reach SKYRAN. Check your connection."}
       </Txt>
 
       <Button
