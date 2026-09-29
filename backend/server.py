@@ -162,6 +162,23 @@
 #     )
 
 
+# async def send_order_placed_sms(
+#     phone: str,
+#     customer_name: str,
+#     order_id: str,
+# ) -> bool:
+#     """V3 order-success SMS sent to the customer after an order is created."""
+#     return await _renflair_get(
+#         "V3.php",
+#         {
+#             "PHONE": phone,
+#             "OID": order_id,
+#             "CNAME": customer_name,
+#         },
+#         f"order placed [order={order_id}]",
+#     )
+
+
 # async def send_restaurant_new_order_sms(
 #     phone: str,
 #     order_id: str,
@@ -1776,7 +1793,21 @@
 #         {"_id": res.inserted_id}
 #     )
 
-#     # ==================== DELIVERY OTP SMS ====================
+#     # ==================== CUSTOMER ORDER PLACED SMS ====================
+
+#     if config.SMS_PROVIDER == "renflair":
+#         sent = await send_order_placed_sms(
+#             phone=user.get("phone"),
+#             customer_name=user.get("name") or "Customer",
+#             order_id=str(res.inserted_id),
+#         )
+
+#         if not sent:
+#             logger.error(
+#                 "Customer order-placed SMS could not be sent "
+#                 "for order=%s",
+#                 str(res.inserted_id),
+#             )
 
 #     # ==================== CUSTOMER DELIVERY OTP SMS ====================
 
@@ -2358,6 +2389,24 @@
 #         "message": "Backend is running successfully!",
 #         "docs": "/docs",
 #     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3430,6 +3479,38 @@ async def categories():
     }
 
 
+def _restaurant_is_open(r):
+    """Return the effective restaurant open/closed status.
+
+    The database uses open_time/close_time. Manual is_open remains an
+    additional override: when it is False, the restaurant stays closed.
+    When operating hours are configured, the current server time must also
+    be inside those hours. Overnight hours such as 18:00-02:00 are supported.
+    """
+    if not r.get("is_open", True):
+        return False
+
+    if r.get("status") != "approved":
+        return False
+
+    open_time = r.get("open_time")
+    close_time = r.get("close_time")
+
+    if not open_time or not close_time:
+        return True
+
+    current_time_str = now().strftime("%H:%M")
+
+    if open_time <= close_time:
+        return open_time <= current_time_str < close_time
+
+    # Overnight hours, e.g. 18:00-02:00.
+    return (
+        current_time_str >= open_time
+        or current_time_str < close_time
+    )
+
+
 async def _restaurant_public(
     r,
     settings,
@@ -3446,10 +3527,7 @@ async def _restaurant_public(
             r["lng"],
         )
 
-    is_open = (
-        r.get("is_open", True)
-        and r.get("status") == "approved"
-    )
+    is_open = _restaurant_is_open(r)
 
     out = ser(r)
     out["distance_km"] = d
@@ -3912,10 +3990,7 @@ async def quote_order(
         "eta_seconds": route.get(
             "duration_seconds"
         ),
-        "is_open": restaurant.get(
-            "is_open",
-            True,
-        ),
+        "is_open": _restaurant_is_open(restaurant),
     }
 
 
@@ -3961,38 +4036,12 @@ async def create_order(
             "Restaurant not available",
         )
 
-    # Restaurant open status check
-    if not restaurant.get(
-        "is_open",
-        True,
-    ):
+    # Restaurant open status + operating hours check
+    if not _restaurant_is_open(restaurant):
         raise HTTPException(
             409,
             "Restaurant is currently closed",
         )
-
-    # Time-based operating hours check
-    current_time_str = now().strftime("%H:%M")
-
-    open_time = restaurant.get(
-        "opening_time"
-    )
-
-    close_time = restaurant.get(
-        "closing_time"
-    )
-
-    if open_time and close_time:
-        if not (
-            open_time
-            <= current_time_str
-            <= close_time
-        ):
-            raise HTTPException(
-                409,
-                "Restaurant is closed now. "
-                f"Operating hours: {open_time} to {close_time}",
-            )
 
     address = await _default_address(
         user,
@@ -4589,7 +4638,7 @@ async def reorder(
     return {
         "restaurant_id": str(r["_id"]),
         "restaurant_name": r["name"],
-        "is_open": r.get("is_open", True),
+        "is_open": _restaurant_is_open(r),
         "items": items,
         "unavailable": unavailable,
     }
